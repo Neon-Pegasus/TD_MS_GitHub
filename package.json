@@ -1,0 +1,28 @@
+{
+  "name": "TD_MS_GitHub",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jben13/TD_MS_GitHub.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Jben13/TD_MS_GitHub/issues"
+  },
+  "homepage": "https://github.com/Jben13/TD_MS_GitHub#readme",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "dotenv": "^6.0.0",
+    "express": "^4.16.3",
+    "nodemon": "^1.18.4",
+    "path": "^0.12.7",
+    "sequelize": "^4.39.0"
+  }
+}
