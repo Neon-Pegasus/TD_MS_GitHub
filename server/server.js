@@ -17,15 +17,27 @@ gitServer.listen(port, function() {
 //GET: User's repos from GitHub
 gitServer.get('/user/repos', (req, res) => {
   var username = 'therobinkim';
-
   var api = `https://api.github.com/users/${username}/repos`
   axios.get(api, {headers: {Authorization: `Bearer${process.env.GITHUB_TOKEN}`}} )
   .then((data) => {
     console.log(data);
   })
-})
+  .catch(error => {
+    console.log('Error', error);
+  })
+});
 
 
+//GET: Github Organizations
+gitServer.get('/Orgs', (req, res) => {
+  var api = 'https://api.github.com/organizations'
+  axios.get(api, {headers: {Authorization: `Bearer${process.env.GITHUB_TOKEN}`}} )
+  .then((data) => {
+    console.log(data);
+  })
+  .catch(error => {
+    console.log('Error', error);
+  }) 
+});
 
-
-
+  
