@@ -11,10 +11,10 @@ const request = () => {
       callback(res.body);
     }
   })
-}
+};
 
-//GET: user's repos from github
-const getReposByUsername = (username, callback) => {
+// User's Repos from Github
+const getReposByUser = (username, callback) => {
   let options = {
     method: 'GET',
     url: `https://api.github.com/users/${username}/repos`,
@@ -26,8 +26,8 @@ const getReposByUsername = (username, callback) => {
   return request(options);
 };
 
-//Get: User's comments by Repos
-const listCommentsInARepository = (username, repo, callback) => {
+//User's Comments/Reviews by Repos
+const listCommentsInARepo = (username, repo, callback) => {
   let options = {
     method: 'GET',
     url: `https://api.github.com/repos/${username}/${repo}/pulls/comments`,
@@ -39,7 +39,7 @@ const listCommentsInARepository = (username, repo, callback) => {
   return request(options);
 };
 
-//GET: Github Organizations
+// List Github Organizations
 const listOrganizations = (callback) => {
   let options = {
     method: 'GET',
@@ -52,7 +52,7 @@ const listOrganizations = (callback) => {
   return request(options);
 };
 
-//GET: organizations members 
+//Organizations members 
 const listOrgsMembers = (org, callback) => {
   let options = {
     method: 'GET',
@@ -65,7 +65,7 @@ const listOrgsMembers = (org, callback) => {
   return request(options);
 };
 
-//GET: Search repositories by stargazers 
+// Search repositories by stargazers 
 const reposByStars = (callback) => {
   let options = {
     method: 'GET',
@@ -78,8 +78,8 @@ const reposByStars = (callback) => {
   return request(options);
 };
 
-module.exports.getReposByUsername = getReposByUsername;
-module.exports.listCommentsInARepository = listCommentsInARepository;
+module.exports.getReposByUser = getReposByUser;
+module.exports.listCommentsInARepo = listCommentsInARepo;
 module.exports.listOrganizations = listOrganizations;
 module.exports.listOrgMembers = listOrgsMembers;
 module.exports.reposByStars = reposByStars;
