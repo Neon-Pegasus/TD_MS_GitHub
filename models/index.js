@@ -61,3 +61,9 @@ module.exports.User = User;
 module.exports.Repo = Repo;
 module.exports.Organizations = Organizations;
 module.exports.OrgMembers = OrgMembers;
+
+/**
+ * The model represents a table in the datbase. 
+ * Organization is a table for a list of Organization (like google). 
+ * OrgMembers is a table for the Members of an Organization(like google) and their reviews. 
+ */
