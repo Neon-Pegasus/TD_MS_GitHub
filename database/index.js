@@ -1,7 +1,7 @@
 require('dotenv').config();
 const Sequelize = require('sequelize');
 
-var db_url = '';
+let db_url = '';
 
 
 const githubDb = new Sequelize(`${db_url}`);
@@ -32,7 +32,7 @@ const Repo = githubDb.define('repo', {
     type: Sequelize.INTEGER,
     primaryKey: true,
     autoIncrement: true,
-  }
+  },
   user_id: Sequelize.Arry(Sequelize.Text),
   org_id: Sequelize.Arry(Sequelize.Text),
   repoName: Sequelize.STRING,
@@ -44,10 +44,14 @@ const Repo = githubDb.define('repo', {
 });
 
 const Organizations = githubDb.define('Organizations', {
+  org_id: {
+    type: Sequelize.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
   org_name: Sequelize.STRING,
   org_stargazers: Sequelize.INTEGER,
   user_id: Sequelize.Arry(Sequelize.Text),
-  org_id: Sequelize.Arry(Sequelize.Text),
 });
 
 
@@ -59,10 +63,9 @@ githubDb.sync()
           .then(() => {
             Organizations.create({})
               .then(() => {});
-              });
           });
       });
-
+  });
 
 
 module.exports.User = User;
@@ -73,6 +76,6 @@ module.exports.Organizations = Organizations;
 /**
  * The model represents a table in the datbase.
  * Organization is a table for a list of Organization (like google).
- * The reviews for the organizations, and users are found within org repos. 
- * 
+ * The reviews for the organizations, and users are found within org repos.
+ *
  */
