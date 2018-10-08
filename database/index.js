@@ -1,10 +1,10 @@
 require('dotenv').config();
 const Sequelize = require('sequelize');
 
-let db_url = '';
+const dbUrl = 'postgres://onrvsfoe:YLeKOk6VJ9sAvlhrP5pjJOPTskQgKsGb@tantor.db.elephantsql.com:5432/onrvsfoe';
 
 
-const githubDb = new Sequelize(`${db_url}`);
+const githubDb = new Sequelize(`${dbUrl}`);
 
 
 githubDb
@@ -17,41 +17,30 @@ githubDb
   });
 
 const User = githubDb.define('User', {
-  user_id: {
-    type: Sequelize.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
-  },
-  userName: Sequelize.STRING,
-  repo_id_list: Sequelize.Array(Sequelize.Text),
-  org_id_list: Sequelize.Array(Sequelize.Text),
+  userId: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
+  userName: { type: Sequelize.STRING, unique: { args: true, message: 'username must be unique', fields: [Sequelize.fn('lower', Sequelize.col('username'))] } },
+  repoNameList: { type: Sequelize.ARRAY(Sequelize.TEXT) },
+  repoIdList: { type: Sequelize.ARRAY(Sequelize.INTEGER) },
+  orgIdList: { type: Sequelize.ARRAY(Sequelize.INTEGER) },
 });
 
-const Repo = githubDb.define('repo', {
-  repo_id: {
-    type: Sequelize.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
-  },
-  user_id: Sequelize.Arry(Sequelize.Text),
-  org_id: Sequelize.Arry(Sequelize.Text),
-  repoName: Sequelize.STRING,
-  repo_stargazers: Sequelize.INTEGER,
-  pullRequestBody: Sequelize.Array(Sequelize.Text),
-  reviewsBody: Sequelize.Array(Sequelize.Text),
-  commentsBody: Sequelize.Array(Sequelize.Text),
-  updatedAt: Sequelize.DATE,
+const Repo = githubDb.define('Repo', {
+  repoId: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
+  userId: { type: Sequelize.ARRAY(Sequelize.INTEGER) },
+  orgId: { type: Sequelize.ARRAY(Sequelize.INTEGER) },
+  repoName: { type: Sequelize.STRING },
+  repoStargazers: { type: Sequelize.INTEGER },
+  pullRequestBody: { type: Sequelize.ARRAY(Sequelize.TEXT) },
+  reviewsBody: { type: Sequelize.ARRAY(Sequelize.TEXT) },
+  commentsBody: { type: Sequelize.ARRAY(Sequelize.TEXT) },
+  updatedAt: { type: Sequelize.DATE },
 });
 
 const Organizations = githubDb.define('Organizations', {
-  org_id: {
-    type: Sequelize.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
-  },
-  org_name: Sequelize.STRING,
-  org_stargazers: Sequelize.INTEGER,
-  user_id: Sequelize.Arry(Sequelize.Text),
+  orgId: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
+  orgName: { type: Sequelize.STRING, unique: { args: true, message: 'orgName must be unique', fields: [Sequelize.fn('lower', Sequelize.col('orgName'))] } },
+  orgStargazers: { type: Sequelize.INTEGER },
+  userId: { type: Sequelize.ARRAY(Sequelize.INTEGER) },
 });
 
 
@@ -66,8 +55,6 @@ githubDb.sync()
           });
       });
   });
-
-
 module.exports.User = User;
 module.exports.Repo = Repo;
 module.exports.Organizations = Organizations;

@@ -1,51 +1,42 @@
 const express = require('express');
-const axios = require('axios');
 const bodyParser = require('body-parser');
-// const db = require('../database/database.js');
-const dotenv = require('dotenv');
-dotenv.config();
+const db = require('../database/index.js');
+const api = require('../helper/helpers.js');
+require('dotenv').config()
+
+var ghToken = '';
 
 const gitServer = express();
-const port = 4200; 
+const port = process.env.PORT || 4200; 
 
 gitServer.use(bodyParser.json());
-// gitServer.use(bodyParser.urlencoded({extended:true}));
 
 gitServer.listen(port, function() {
   console.log(`listening on ${port}`);
 });
 
-var github_token = '264bfe4191b90d218ea390a9c9c69c9242963010';
 
-
-// //GET: User's repos from GitHub
-gitServer.get('/user/repos', (req, res) => {
-  var username = 'therobinkim';
-  var api = `https://api.github.com/users/${username}/repos`
-  axios.get(api, {headers: {Authorization: `Bearer ${github_token}`}} )
-  .then(results => {
-    var requests = results.data.map(result => (result.pulls_url));
-    return requests;
-  })
-  .then(requests => {
-    // console.log('line 31', requests);
-    let queries = requests.map(request => {
-    let url = request;
-    let newUrl = url.replace(/\{([^}]+)\}/g, '?state=all');
-      // console.log(newUrl);
-      return axios.get(newUrl, {headers: {Authorization: `Bearer ${github_token}`}} )
+//User's repos from GitHub
+  gitServer.get('/api/user/repos', (req, res) => {
+    let username = req.body.username || 'therobinkim';
+    let userId = 0;
+    api.getReposByUser(username, function(res) {
+      let newData = JSON.parse(res);
+      var userRepos = newData.map(repo => JSON.stringify((repo.name)));
+      console.log(userRepos);
+      db.User.create({
+          userId: userId, 
+          userName: username, 
+          repoNameList: userRepos
+        }).then((user) => {
+          console.log('Sucess - Data is saved', user);
+        }).catch((error) => {
+          console.log('Error - NOT saved', error)
+        });
     })
-    Promise.all(queries)
-    .then(answers => console.log('promise', answers))
-  })
-  .then((response) => {
-    // console.log('line 41', response);
-    res.send(JSON.stringify(response));
-  })
-  .catch(error => {
-    console.log('Error', error);
-  })
-});
+    .catch(error => console.log('Error - Repo comments were NOT saved', error));
+    res.end();
+  });
 
 
 //GET: Github Organizations
