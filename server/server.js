@@ -15,6 +15,7 @@ gitServer.listen(port, function() {
 });
 
 
+
 //User's repos from GitHub
   gitServer.get('/api/user/repos', (req, res) => {
     let username = req.body.username || 'therobinkim';
@@ -67,17 +68,24 @@ gitServer.listen(port, function() {
 
 
 //GET: Github Organizations
-// gitServer.get('/Orgs', (req, res) => {
-//   var api = 'https://api.github.com/organizations'
-//   axios.get(api, {headers: {Authorization: `Bearer${process.env.GITHUB_TOKEN}`}} )
-//   .then((data) => {
-//     console.log(data);
-//     res.send(data);
-//   })
-//   .catch(error => {
-//     console.log('Error', error);
-//   }) 
-// });
+gitServer.get('/Orgs', (req, res) => {
+  let orgId = 0;
+  api.listOrganizations( function(res) {
+    let newOrgs = JSON.parse(res);
+    let eachOrg = newOrgs.map(org => JSON.stringify((org.login)));
+   eachOrg.forEach(function(element) {
+      db.Organizations.create({
+        orgId: orgId, 
+        orgName: element,
+      }).then((data) => {
+        console.log('Success - Organizations have been saved', data);
+      }).catch((error) => {
+        console.log('Error', error);
+      })
+    })
+  })
+  res.end();
+});
 
   //GET: Github Repos by Stargazers
 // gitServer.get('/starred/repos', (req, res) => {
