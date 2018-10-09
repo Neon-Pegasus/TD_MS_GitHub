@@ -112,3 +112,38 @@ gitServer.get('/starred/orgs', (req, res) => {
     })
   }).catch(error => console.log('Error', error));
 });
+
+
+// Github top Repos by stargazers 
+gitServer.get('/starred/repos', (req, res) => {
+  let repoId = 0; 
+  api.reposByStars( function(res) {
+    let newRes = JSON.parse(res);
+    let newRepo = newRes.items
+    let repoData = newRepo.map((repo) => {
+      return repo.url
+    })
+    console.log(repoData);
+      repoData.forEach(function(url) {
+        api.listComments(url, function(res) {
+          let data = JSON.parse(res);
+          let newData = data.map((repo) => {
+            if (repo.author_association !== 'CONTRIBUTOR') {
+              return repo.body;
+            }
+          })
+          newData.forEach(function(element) {
+            db.Repo.create({
+              repoId: repoId,
+              orgId: orgId, 
+              commentsBody: element,
+            }).then((data) => {
+              console.log('Success - Top Repo comments have been saved', data);
+            }).catch((error) => {
+              console.log('Error', error);
+            })
+          })
+        })
+      })
+  }).catch(error => console.log('Error', error));
+});
