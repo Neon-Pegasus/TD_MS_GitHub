@@ -1,10 +1,9 @@
 const request = require('request-promise');
 require('dotenv').config();
 
-var ghToken = '';
 
 
-// User's Repos from Github
+// List User's Repos from Github
 const getReposByUser = (username, callback) => {
   let options = {
     method: 'GET',
@@ -24,7 +23,7 @@ const getReposByUser = (username, callback) => {
   })
 };
 
-//User's Comments/Reviews to a pull request by Repos
+// List the User's repo's pull request review comments 
 const listCommentsInARepo = (username, repo, callback) => {
   let options = {
     method: 'GET',
@@ -44,7 +43,7 @@ const listCommentsInARepo = (username, repo, callback) => {
   })
 };
 
-// List Github Organizations
+// List Github Random Organizations
 const listOrganizations = (callback) => {
   let options = {
     method: 'GET',
@@ -65,7 +64,7 @@ const listOrganizations = (callback) => {
 };
 
 
-// Search repositories by stargazers 
+// Searches repositories by Stargazers over 10,000 and language: javascript
 const reposByStars = (callback) => {
   let options = {
     method: 'GET',
@@ -85,7 +84,7 @@ const reposByStars = (callback) => {
   })
 };
 
-// List top Repos comments
+// List the Top Repos pull request review comments
 const listComments = (url, callback) => {
   let options = {
     method: 'GET',
