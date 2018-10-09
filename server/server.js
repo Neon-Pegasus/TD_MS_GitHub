@@ -4,7 +4,6 @@ const db = require('../database/index.js');
 const api = require('../helper/helpers.js');
 require('dotenv').config()
 
-var ghToken = '';
 
 const gitServer = express();
 const port = process.env.PORT || 4200; 
@@ -37,6 +36,34 @@ gitServer.listen(port, function() {
     .catch(error => console.log('Error - Repo comments were NOT saved', error));
     res.end();
   });
+
+  // User's repos and User's review comments
+  gitServer.get('/api/user/repo/review', (req, res) => {
+    let username = 'therobinkim';
+    let repo ='lets-recreate-axios';
+    let repoId = 0;
+    api.listCommentsInARepo(username, repo, function(res) {
+      let newRepo = JSON.parse(res);
+      let data = newRepo.map((repo) => {
+        if (repo.author_association !== 'CONTRIBUTOR') {
+          return repo.body;
+        }
+      });
+      console.log(data);
+      db.Repo.create({
+        repoId: repoId,
+        repoName: repo,
+        commentsBody: data, 
+      }).then((data) => {
+        console.log('Repo review comments have been saved!', data);
+      }).catch((error) => {
+        console.log('Error - Repo Review was NOT saved', error);
+      })
+      
+    })
+    .catch(error => console.log('Error - Repo comments were NOT saved', error));
+    res.end();
+    });
 
 
 //GET: Github Organizations
