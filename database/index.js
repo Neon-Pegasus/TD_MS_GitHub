@@ -2,7 +2,7 @@ require('dotenv').config();
 const Sequelize = require('sequelize');
 
 
-const githubDb = new Sequelize(`${DB_Url}`);
+const githubDb = new Sequelize(`${process.env.DB_URL}`);
 
 
 githubDb
