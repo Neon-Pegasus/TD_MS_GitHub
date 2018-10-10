@@ -1,7 +1,7 @@
 const request = require('request-promise');
 require('dotenv').config();
 
-const ghToken = 'b0200925c2c1315b86b665b308fa0de67f4d478a';
+const ghToken = '';
 
 // List User's Repos from Github
 const getReposByUser = (username, callback) => {
@@ -67,7 +67,7 @@ const listOrganizations = (callback) => {
 const reposByStars = (callback) => {
   const options = {
     method: 'GET',
-    url: 'https://api.github.com/search/repositories?q=stars:>10000+language:javascript',
+    url: 'https://api.github.com/search/repositories?q=stars:>20000+language:javascript?page=1&per_page=100',
     headers: {
       'User-Agent': 'request',
       Authorization: `bearer ${ghToken}`,
@@ -87,7 +87,7 @@ const reposByStars = (callback) => {
 const listComments = (url, callback) => {
   const options = {
     method: 'GET',
-    url: `${url}/issues/comments`,
+    url: `${url}/issues/comments?page=1&per_page=100`,
     headers: {
       'User-Agent': 'request',
       Authorization: `bearer ${ghToken}`,

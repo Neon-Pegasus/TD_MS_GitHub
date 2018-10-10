@@ -20,27 +20,47 @@ const User = githubDb.define('User', {
   userId: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
   userName: { type: Sequelize.STRING, unique: { args: true, message: 'username must be unique', fields: [Sequelize.fn('lower', Sequelize.col('username'))] } },
   repoNameList: { type: Sequelize.ARRAY(Sequelize.TEXT) },
-  repoIdList: { type: Sequelize.ARRAY(Sequelize.INTEGER) },
-  orgIdList: { type: Sequelize.ARRAY(Sequelize.INTEGER) },
+  // repoId: { type: Sequelize.ARRAY(Sequelize.INTEGER) },
 });
 
 const Repo = githubDb.define('Repo', {
-  repoId: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
-  userId: { type: Sequelize.ARRAY(Sequelize.INTEGER) },
-  orgId: { type: Sequelize.ARRAY(Sequelize.INTEGER) },
+  repoId: {
+    type: Sequelize.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+    allowNull: false,
+  },
   repoName: { type: Sequelize.STRING },
-  repoStargazers: { type: Sequelize.INTEGER },
-  pullRequestBody: { type: Sequelize.ARRAY(Sequelize.TEXT) },
-  reviewsBody: { type: Sequelize.ARRAY(Sequelize.TEXT) },
   commentsBody: { type: Sequelize.ARRAY(Sequelize.TEXT) },
+  repoStargazers: { type: Sequelize.INTEGER },
   updatedAt: { type: Sequelize.DATE },
+  // userId: { type: Sequelize.ARRAY(Sequelize.INTEGER) },
 });
 
-const Organizations = githubDb.define('Organizations', {
-  orgId: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
+const TopRepo = githubDb.define('TopRepo', {
+  topId: {
+    type: Sequelize.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+    allowNull: false,
+  },
+  topRepoName: { type: Sequelize.STRING },
+  topCommentsBody: { type: Sequelize.ARRAY(Sequelize.TEXT) },
+  topRepoStargazers: { type: Sequelize.INTEGER },
+  updatedAt: { type: Sequelize.DATE },
+  // orgId: { type: Sequelize.ARRAY(Sequelize.INTEGER) },
+});
+
+const Organization = githubDb.define('Organizations', {
+  orgId: {
+    type: Sequelize.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+    allowNull: false,
+  },
   orgName: { type: Sequelize.STRING, unique: { args: true, message: 'orgName must be unique', fields: [Sequelize.fn('lower', Sequelize.col('orgName'))] } },
   orgStargazers: { type: Sequelize.INTEGER },
-  userId: { type: Sequelize.ARRAY(Sequelize.INTEGER) },
+  // topId: { type: Sequelize.ARRAY(Sequelize.INTEGER) },
 });
 
 
@@ -50,14 +70,25 @@ githubDb.sync()
       .then(() => {
         Repo.create({})
           .then(() => {
-            Organizations.create({})
-              .then(() => {});
+            TopRepo.create({})
+              .then(() => {
+                Organization.create({})
+                  .then(() => {});
+              });
           });
       });
   });
+
+// Relations
+User.hasMany(Repo);
+Repo.belongsTo(User);
+Organization.hasMany(TopRepo);
+TopRepo.belongsTo(Organization);
+
 module.exports.User = User;
 module.exports.Repo = Repo;
-module.exports.Organizations = Organizations;
+module.exports.TopRepo = TopRepo;
+module.exports.Organization = Organization;
 
 
 /**
