@@ -1,108 +1,96 @@
-const request = require('request-promise');
+const axios = require('axios');
 require('dotenv').config();
 
-const ghToken = '';
+// const GITHUB_TOKEN = '';
 
 // List User's Repos from Github
-const getReposByUser = (username, callback) => {
-  const options = {
+const getReposByUser = (username) => {
+  axios({
     method: 'GET',
     url: `https://api.github.com/users/${username}/repos`,
     headers: {
-      'User-Agent': 'request',
-      Authorization: `bearer ${ghToken}`,
+      Authorization: `bearer ${GITHUB_TOKEN}`,
     },
-  };
-  request.get(options, (err, res) => {
-    if (err) {
-      console.log('Error - request to api failed');
-    } else {
-      console.log('Success- retrieved user repos');
-      callback(res.body);
-    }
-  });
+  })
+    .then((response) => {
+      console.log('Success - User Repos received from GH', response);
+    })
+    .catch((error) => {
+      console.log('Error - User Repos GH request', error);
+    });
 };
 
+
 // List the User's repo's pull request review comments
-const listCommentsInARepo = (username, repo, callback) => {
-  const options = {
+const listCommentsInARepo = (username, repo) => {
+  axios({
     method: 'GET',
     url: `https://api.github.com/repos/${username}/${repo}/issues/comments`,
     headers: {
-      'User-Agent': 'request',
-      Authorization: `bearer ${ghToken}`,
+      Authorization: `bearer ${GITHUB_TOKEN}`,
     },
-  };
-  request.get(options, (err, res) => {
-    if (err) {
-      console.log('Error - request to api failed');
-    } else {
-      console.log('Success- retrieved Repos comments');
-      callback(res.body);
-    }
-  });
+  })
+    .then((response) => {
+      console.log('Success - Repo comments received from GH', response);
+    })
+    .catch((error) => {
+      console.log('Error - Repo comments NOT received', error);
+    });
 };
 
+
 // List Github Random Organizations
-const listOrganizations = (callback) => {
-  const options = {
+const listOrganizations = () => {
+  axios({
     method: 'GET',
     url: 'https://api.github.com/organizations',
     headers: {
-      'User-Agent': 'request',
-      Authorization: `bearer ${ghToken}`,
+      Authorization: `bearer ${GITHUB_TOKEN}`,
     },
-  };
-  request.get(options, (err, res) => {
-    if (err) {
-      console.log('Error - request to api failed');
-    } else {
-      console.log('Success- retrieved Repos');
-      callback(res.body);
-    }
-  });
+  })
+    .then((response) => {
+      console.log('Success - List of organizations received from GH', response);
+    })
+    .catch((error) => {
+      console.log('Error - List of organizations NOT received', error);
+    });
 };
 
+
 // Searches repositories by Stargazers over 10,000 and language: javascript
-const reposByStars = (callback) => {
-  const options = {
+const reposByStars = () => {
+  axios({
     method: 'GET',
     url: 'https://api.github.com/search/repositories?q=stars:>20000+language:javascript?page=1&per_page=100',
     headers: {
-      'User-Agent': 'request',
-      Authorization: `bearer ${ghToken}`,
+      Authorization: `bearer ${GITHUB_TOKEN}`,
     },
-  };
-  request.get(options, (err, res) => {
-    if (err) {
-      console.log('Error - request to api failed');
-    } else {
-      console.log('Success- retrieved Repos');
-      callback(res.body);
-    }
-  });
+  })
+    .then((response) => {
+      console.log('Success - List of Repos by Stars received from GH', response);
+    })
+    .catch((error) => {
+      console.log('Error - List of Repos by Stars NOT received', error);
+    });
 };
 
 // List the Top Repos pull request review comments
-const listComments = (url, callback) => {
-  const options = {
+const listComments = (url) => {
+  axios({
     method: 'GET',
     url: `${url}/issues/comments?page=1&per_page=100`,
     headers: {
-      'User-Agent': 'request',
-      Authorization: `bearer ${ghToken}`,
+      Authorization: `bearer ${GITHUB_TOKEN}`,
     },
-  };
-  console.log(options.url);
-  request.get(options, (err, res) => {
-    if (err) {
-      console.log('Error - request to api failed');
-    } else {
-      console.log('Success - retrieved Repos comments');
-      callback(res.body);
-    }
-  });
+  })
+    .then((response) => {
+      console.log('Success - List of Repos by Stars received from GH', response);
+    })
+    .catch((error) => {
+      console.log('Error - List of Repos by Stars NOT received', error);
+    });
 };
+
 
 module.exports.getReposByUser = getReposByUser;
 module.exports.listCommentsInARepo = listCommentsInARepo;
