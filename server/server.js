@@ -14,9 +14,83 @@ gitServer.listen(port, () => {
   console.log(`listening on ${port}`);
 });
 
+/*** Organization ***/
+
+// Get Organizations by top Repos by Stargazers
+gitServer.get('/starred/orgs', (req, res) => {
+  const orgId = 500;
+  api.reposByStars((data) => {
+    const orgArray = data.items;
+    const orgData = orgArray.map((org) => {
+      if (org.owner.type === 'Organization') {
+        db.Organization.create({
+          orgId,
+          orgName: org.owner.login,
+          orgDescription: org.owner.description,
+          orgAvatar: org.owner.avatar_url,
+          orgStargazers: org.stargazers_count,
+          orgRepo: org.name,
+        }).then((orgs) => {
+          res.send(orgs);
+          console.log('Success - Organizations have been saved', orgs);
+        }).catch((error) => {
+          console.log('Error', error);
+        });
+      }
+    });
+  });
+});
+
+// Get an Organization's comments 
+// gitServer.put('/starred/:orgName/:repoName/comments', (req, res) => {
+//   db.Organization.find({
+//     where: {
+//       const orgName = req.params.orgName;
+//       const repoName = req.params.repoName;
+//     }
+//   }).then(())
+    
+//   api.listOrgComments(orgName, repoName, (data) => {
+//     if (data.author_association === 'MEMBER') {
+//       db.Organization.update({
+//         commentsBody: repo.body
+//       }).then((resData) => {
+//         res.send(resData);
+//         console.log('Success - Org comments have been saved!', resData);
+//       }).catch((error) => {
+//         console.log('Error - comments NOT saved', error);
+//       });
+//     }
+//   });
+// });
+
+// Incoming Request for list of Organizations
+gitServer.get('/api/gateway/github/orglist', (req, res) => {
+  const orgList = db.Organization.findAll({}).then((data) => {
+    res.send(data);
+    console.log(data);
+  }).catch((err) => {
+    console.log(err);
+  });
+});
+
+// Incoming Request for Organization Data 
+gitServer.get('/api/gateway/github/orgdata', (req, res) => {
+  const orgData = db.Organization.findAll({}).then((data) => {
+    res.send(data);
+    console.log(data);
+  }).catch((err) => {
+    console.log(err);
+  });
+});
+
+gitServer.get('/', (req, res) => {
+  res.send('HOME PAGE!!!')
+});
+
 
 // User's repos from GitHub
-gitServer.get('/api/user/repos', (req, res) => {
+gitServer.get('/user/repos', (req, res) => {
   const username = req.body.username || 'therobinkim';
   const userId = 0;
   api.getReposByUser(username, (unit) => {
@@ -66,27 +140,27 @@ gitServer.get('/user/repo/review', (res) => {
 
 
 // Github Organization by top Repos by Stargazers
-gitServer.get('/starred/orgs', () => {
-  const orgId = 0;
-  api.reposByStars((unit) => {
-    const newOrg = JSON.parse(unit);
-    const orgArray = newOrg.items;
+// gitServer.get('/starred/orgs', () => {
+//   const orgId = 0;
+//   api.reposByStars((unit) => {
+//     const newOrg = JSON.parse(unit);
+//     const orgArray = newOrg.items;
 
-    const orgData = orgArray.map((org) => {
-      if (org.owner.type === 'Organization') {
-        db.Organization.create({
-          orgId,
-          orgName: org.owner.login,
-          orgStargazers: org.stargazers_count,
-        }).then((orgs) => {
-          console.log('Success - Organizations have been saved', orgs);
-        }).catch((error) => {
-          console.log('Error', error);
-        });
-      }
-    });
-  });
-});
+//     const orgData = orgArray.map((org) => {
+//       if (org.owner.type === 'Organization') {
+//         db.Organization.create({
+//           orgId,
+//           orgName: org.owner.login,
+//           orgStargazers: org.stargazers_count,
+//         }).then((orgs) => {
+//           console.log('Success - Organizations have been saved', orgs);
+//         }).catch((error) => {
+//           console.log('Error', error);
+//         });
+//       }
+//     });
+//   });
+// });
 
 
 // Github top Repos by stargazers
@@ -128,8 +202,11 @@ gitServer.get('/starred/repos', () => {
 });
 
 // Incoming Request for ALL Organizations
-db.Organization.findAll({}).then((data) => {
-  console.log(data);
-}).catch((err) => {
-  console.log(err);
-});
+// gitServer.get('/api/gateway/github/orglist', (req, res) => {
+//   const allOrgs = db.Organization.findAll({}).then((data) => {
+//     res.send(data);
+//     console.log(data);
+//   }).catch((err) => {
+//     console.log(err);
+//   });
+// });
