@@ -9,7 +9,7 @@ const getReposByUser = (username) => {
     method: 'GET',
     url: `https://api.github.com/users/${username}/repos`,
     headers: {
-      Authorization: `bearer ${GITHUB_TOKEN}`,
+      Authorization: `bearer ${process.env.GITHUB_TOKEN}`,
     },
   })
     .then((response) => {
@@ -27,7 +27,7 @@ const listCommentsInARepo = (username, repo) => {
     method: 'GET',
     url: `https://api.github.com/repos/${username}/${repo}/issues/comments`,
     headers: {
-      Authorization: `bearer ${GITHUB_TOKEN}`,
+      Authorization: `bearer ${process.env.GITHUB_TOKEN}`,
     },
   })
     .then((response) => {
@@ -45,7 +45,7 @@ const listOrganizations = () => {
     method: 'GET',
     url: 'https://api.github.com/organizations',
     headers: {
-      Authorization: `bearer ${GITHUB_TOKEN}`,
+      Authorization: `bearer ${process.env.GITHUB_TOKEN}`,
     },
   })
     .then((response) => {
@@ -63,7 +63,7 @@ const reposByStars = () => {
     method: 'GET',
     url: 'https://api.github.com/search/repositories?q=stars:>20000+language:javascript?page=1&per_page=100',
     headers: {
-      Authorization: `bearer ${GITHUB_TOKEN}`,
+      Authorization: `bearer ${process.env.GITHUB_TOKEN}`,
     },
   })
     .then((response) => {
@@ -80,7 +80,7 @@ const listComments = (url) => {
     method: 'GET',
     url: `${url}/issues/comments?page=1&per_page=100`,
     headers: {
-      Authorization: `bearer ${GITHUB_TOKEN}`,
+      Authorization: `bearer ${process.env.GITHUB_TOKEN}`,
     },
   })
     .then((response) => {
