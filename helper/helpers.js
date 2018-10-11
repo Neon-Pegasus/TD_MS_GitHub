@@ -1,7 +1,6 @@
 const request = require('request-promise');
 require('dotenv').config();
 
-const GITHUB_TOKEN = '';
 
 // List User's Repos from Github
 const getReposByUser = (username, callback) => {
@@ -10,7 +9,7 @@ const getReposByUser = (username, callback) => {
     url: `https://api.github.com/users/${username}/repos`,
     headers: {
       'User-Agent': 'request',
-      Authorization: `bearer ${GITHUB_TOKEN}`,
+      Authorization: `bearer ${process.env.GITHUB_TOKEN}`,
     },
   };
   request.get(options, (err, res) => {
@@ -31,7 +30,7 @@ const listCommentsInARepo = (username, repo, callback) => {
     url: `https://api.github.com/repos/${username}/${repo}/issues/comments`,
     headers: {
       'User-Agent': 'request',
-      Authorization: `bearer ${GITHUB_TOKEN}`,
+      Authorization: `bearer ${process.env.GITHUB_TOKEN}`,
     },
   };
   request.get(options, (err, res) => {
@@ -52,7 +51,7 @@ const reposByStars = (callback) => {
     url: 'https://api.github.com/search/repositories?q=stars:>20000+language:javascript?page=1&per_page=100',
     headers: {
       'User-Agent': 'request',
-      Authorization: `bearer ${GITHUB_TOKEN}`,
+      Authorization: `bearer ${process.env.GITHUB_TOKEN}`,
     },
   };
   request.get(options, (err, res) => {
@@ -73,7 +72,7 @@ const listComments = (url, callback) => {
     url: `${url}/issues/comments?page=1&per_page=100`,
     headers: {
       'User-Agent': 'request',
-      Authorization: `bearer ${GITHUB_TOKEN}`,
+      Authorization: `bearer ${process.env.GITHUB_TOKEN}`,
     },
   };
   request.get(options, (err, res) => {
@@ -92,7 +91,7 @@ const listOrgComments = (orgName, repoName, callback) => {
     url: `https://api.github.com/repos/${orgName}/${repoName}/issues/comments?page=1&per_page=100`,
     headers: {
       'User-Agent': 'request',
-      Authorization: `bearer ${GITHUB_TOKEN}`,
+      Authorization: `bearer ${process.env.GITHUB_TOKEN}`,
     },
   };
   request.get(options, (err, res) => {
