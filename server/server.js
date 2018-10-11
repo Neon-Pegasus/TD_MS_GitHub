@@ -27,13 +27,10 @@ gitServer.get('/', (req, res) => {
 gitServer.get('/starred/orgs', (req, res) => {
   const orgId = 0;
   api.reposByStars((data) => {
-    console.log('starred/orgs', data);
     const newOrg = JSON.parse(data);
-    console.log('NEW ORG', newOrg);
     const orgArray = newOrg.items;
     const orgData = orgArray.map((org) => {
       if (org.owner.type === 'Organization') {
-        console.log('line 36', org.name);
         db.Organization.create({
           orgId,
           orgName: org.owner.login,
@@ -82,15 +79,16 @@ gitServer.put('/starred/orgName/repoName/comments', (req, res) => {
     const newData = JSON.parse(data);
     const orgData = newData.map((org) => {
       if (org.author_association === 'MEMBER') {
-        console.log(org.body);
-        db.Organization.update({
-          orgCommentsBody: org.body,
-          orgUpdatedAt: org.updatedAt,
-        }, {
-          where: { orgName : orgName }
-        }).then((newOrg) => {
-          res.send(newOrg);
-        });
+        return db.Organization.find({ where: { orgName } })
+          .then((data) => {
+            if (data !== null) {
+              return db.Organization.update({
+                orgCommentsBody: org.body,
+                orgUpdatedAt: org.updatedAt,
+              });
+            }
+            throw new Error('Organization does not exist');
+          });
       }
     });
   });
@@ -115,7 +113,7 @@ gitServer.get('/user/repos', (req, res) => {
       console.log('Sucess - Data is saved');
     }).catch((error) => {
       console.log('Error - NOT saved', error);
-    }); 
+    });
   });
 });
 
@@ -127,8 +125,8 @@ gitServer.get('/user/repo/review', (req, res) => {
     where: { userName: username },
   }).then((data) => {
     data.repoNameList.forEach((repo) => {
-      api.listCommentsInARepo(data.userName, repo, (unit) => {  
-        const newUnit = JSON.parse(unit);  
+      api.listCommentsInARepo(data.userName, repo, (unit) => {
+        const newUnit = JSON.parse(unit);
         const data = newUnit.map((repos) => {
           if (repos.author_association !== 'CONTRIBUTOR') {
             // return db.Repo.create({
