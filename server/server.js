@@ -86,60 +86,78 @@ gitServer.get('/api/gateway/github/orgdata', (req, res) => {
   });
 });
 
+// Test for deployment
 gitServer.get('/', (req, res) => {
   res.send('Test - HOME PAGE!!!');
 });
 
 
-// // User's repos from GitHub
-// gitServer.get('/user/repos', (req, res) => {
-//   const username = req.body.username || 'therobinkim';
-//   const userId = 0;
-//   api.getReposByUser(username, (unit) => {
-//     const newData = JSON.parse(unit);
-//     const userRepos = newData.map(repo => JSON.stringify((repo.name)));
-//     console.log(userRepos);
-//     db.User.create({
-//       userId,
-//       userName: username,
-//       repoNameList: userRepos,
-//     }).then((user) => {
-//       console.log('Sucess - Data is saved', user);
-//     }).catch((error) => {
-//       console.log('Error - NOT saved', error);
-//     });
-//   })
-//     .catch(error => console.log('Error - Repo comments were NOT saved', error));
-//   res.end();
-// });
+/** * User's ** */
 
 
-// // User's repos and User's review comments
-// gitServer.get('/user/repo/review', (res) => {
-//   const username = 'therobinkim';
-//   const repo = 'lets-recreate-axios';
+// User's repos from GitHub
+gitServer.get('/user/repos', (req, res) => {
+  const username = req.body.username || 'andrew';
+  const userId = 0;
+  api.getReposByUser(username, (unit) => {
+    const newData = JSON.parse(unit);
+    const userRepos = newData.map(repo => JSON.stringify((repo.name)));
+    db.User.create({
+      userId,
+      userName: username,
+      repoNameList: userRepos,
+    }).then((user) => {
+      res.send(user);
+      console.log('Sucess - Data is saved');
+    }).catch((error) => {
+      console.log('Error - NOT saved', error);
+    }); 
+  });
+});
+
+
+// User's repos and User's review comments
+// gitServer.get('/user/repo/review', (req, res) => {
 //   const repoIdNum = 0;
-//   api.listCommentsInARepo(username, repo, (unit) => {
-//     const newRepo = JSON.parse(unit);
-//     const data = newRepo.map((repos) => {
-//       if (repos.author_association !== 'CONTRIBUTOR') {
-//         return repos.body;
-//       }
+//   const username = req.body.username || 'fabpot';
+//   db.User.findOne({
+//     where: { userName: username },
+//   }).then((data) => {
+//     data.repoNameList.forEach((repo) => {
+//       api.listCommentsInARepo(data.userName, repo, (unit) => {  
+//         const newUnit = JSON.parse(unit);  
+//         const data = newUnit.map((repos) => {
+//           if (repos.author_association !== 'CONTRIBUTOR') {
+//             // return db.Repo.create({
+//             //   repoId: repoIdNum,
+//             //   // repoName: repo,
+//             //   commentsBody: repos.body,
+//             //   updatedAt: repos.updatedAt,
+//             // }).then((repoData) => {
+//             //   res.send(repoData);
+//             //   console.log('Repo review comments have been saved!', repoData);
+//             // }).catch((error) => {
+//             //   console.log('Error - Repo Review was NOT saved', error);
+//             // });
+//           }
+//         });
+//       });
 //     });
-//     db.Repo.create({
-//       repoId: repoIdNum,
-//       repoName: repo,
-//       commentsBody: data,
-//     }).then((repoData) => {
-//       console.log('Repo review comments have been saved!', repoData);
-//     }).catch((error) => {
-//       console.log('Error - Repo Review was NOT saved', error);
-//     });
-//   })
-//     .catch(error => console.log('Error - Repo comments were NOT saved', error));
-//   res.end();
+//   });
 // });
 
+// Request for User's repos
+
+
+// Incoming request for User's Repos comments
+// gitServer.get('/api/gateway/github/userdata', (req, res) => {
+//   db.User.findAll({}).then((data) => {
+//     res.send(data);
+//     console.log(data);
+//   }).catch((err) => {
+//     console.log(err);
+//   });
+// });
 
 // // Github Organization by top Repos by Stargazers
 // // gitServer.get('/starred/orgs', () => {
@@ -165,40 +183,40 @@ gitServer.get('/', (req, res) => {
 // // });
 
 
-// // Github top Repos by stargazers
-// gitServer.get('/starred/repos', () => {
-//   const topId = 0;
-//   api.reposByStars((res) => {
-//     const newRes = JSON.parse(res);
-//     const newRepo = newRes.items;
-//     const repoData = newRepo.map((repo) => {
-//       db.TopRepo.create({
-//         topId,
-//         topRepoName: repo.name,
-//         topRepoStargazers: repo.stargazers_count,
-//         updatedAt: repo.updatedAt,
-//       });
-//       return repo.url;
-//     });
-//     repoData.forEach((url) => {
-//       api.listComments(url, (unit) => {
-//         const data = JSON.parse(unit);
-//         const newData = data.map((repo) => {
-//           if (repo.author_association !== 'CONTRIBUTOR') {
-//             db.TopRepo.update({
-//               commentsBody: repo.body,
-//             }, {
-//               where: {
-//                 topId,
-//               },
-//             }).then((resData) => {
-//               console.log('Success - Top Repo comments have been saved', resData);
-//             }).catch((error) => {
-//               console.log('Error', error);
-//             });
-//           }
-//         });
-//       });
-//     });
-//   });
-// });
+// Github top Repos by stargazers
+gitServer.get('/starred/repos', () => {
+  const topId = 0;
+  api.reposByStars((res) => {
+    const newRes = JSON.parse(res);
+    const newRepo = newRes.items;
+    const repoData = newRepo.map((repo) => {
+      db.TopRepo.create({
+        topId,
+        topRepoName: repo.name,
+        topRepoStargazers: repo.stargazers_count,
+        updatedAt: repo.updatedAt,
+      });
+      return repo.url;
+    });
+    repoData.forEach((url) => {
+      api.listComments(url, (unit) => {
+        const data = JSON.parse(unit);
+        const newData = data.map((repo) => {
+          if (repo.author_association !== 'CONTRIBUTOR') {
+            db.TopRepo.update({
+              commentsBody: repo.body,
+            }, {
+              where: {
+                topId,
+              },
+            }).then((resData) => {
+              console.log('Success - Top Repo comments have been saved', resData);
+            }).catch((error) => {
+              console.log('Error', error);
+            });
+          }
+        });
+      });
+    });
+  });
+});
