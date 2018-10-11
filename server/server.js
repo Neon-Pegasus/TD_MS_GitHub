@@ -1,5 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const moment = require('moment');
 const db = require('../database/index.js');
 const api = require('../helper/helpers.js');
 require('dotenv').config();
@@ -72,34 +73,38 @@ gitServer.get('/api/gateway/github/orgdata', (req, res) => {
 });
 
 // // Get an Organization's comments
-gitServer.put('/starred/orgName/repoName/comments', (req, res) => {
-  const orgName = 'freeCodeCamp';
-  const repoName = 'freeCodeCamp';
-  api.listOrgComments(orgName, repoName, (data) => {
-    const newData = JSON.parse(data);
-    const orgData = newData.map((org) => {
-      if (org.author_association === 'MEMBER') {
-        return db.Organization.find({ where: { orgName } })
-          .then((data) => {
-            if (data !== null) {
-              return db.Organization.update({
-                orgCommentsBody: org.body,
-                orgUpdatedAt: org.updatedAt,
-              });
-            }
-            throw new Error('Organization does not exist');
-          });
-      }
-    });
-  });
-});
+// gitServer.get('/starred/orgName/repoName/comments', (req, res) => {
+//   const orgName = 'freeCodeCamp';
+//   const repoName = 'freeCodeCamp';
+//   api.listOrgComments(orgName, repoName, (data) => {
+//     const inputData = JSON.parse(data);
+//     const commentData = inputData.map((org) => {
+//       if (org.author_association === 'MEMBER') {
+//         return org.body;
+//       }
+//     });
+//     const dateData = inputData.map((org) => {
+//       if (org.author_association === 'MEMBER') {
+//         return org.updatedAt;
+//       }
+//     });
+//     db.Organization.update({
+//       orgCommentsBody: commentData,
+//       orgUpdatedAt: dateData,
+//     }, {
+//       where: { orgName },
+//     }).then(() => {
+//       console.log('Updated Successfully');
+//     });
+//   });
+// });
 
 
 /** * User's ** */
 
 // User's repos from GitHub
 gitServer.get('/user/repos', (req, res) => {
-  const username = req.body.username || 'andrew';
+  const username = req.body.username || 'fabpot';
   const userId = 0;
   api.getReposByUser(username, (unit) => {
     const newData = JSON.parse(unit);
@@ -129,17 +134,17 @@ gitServer.get('/user/repo/review', (req, res) => {
         const newUnit = JSON.parse(unit);
         const data = newUnit.map((repos) => {
           if (repos.author_association !== 'CONTRIBUTOR') {
-            // return db.Repo.create({
-            //   repoId: repoIdNum,
-            //   // repoName: repo,
-            //   commentsBody: repos.body,
-            //   updatedAt: repos.updatedAt,
-            // }).then((repoData) => {
-            //   res.send(repoData);
-            //   console.log('Repo review comments have been saved!', repoData);
-            // }).catch((error) => {
-            //   console.log('Error - Repo Review was NOT saved', error);
-            // });
+            return db.Repo.create({
+              repoId: repoIdNum,
+              // repoName: repo,
+              commentsBody: repos.body,
+              updatedAt: repos.updatedAt,
+            }).then((repoData) => {
+              res.send(repoData);
+              console.log('Repo review comments have been saved!', repoData);
+            }).catch((error) => {
+              console.log('Error - Repo Review was NOT saved', error);
+            });
           }
         });
       });
