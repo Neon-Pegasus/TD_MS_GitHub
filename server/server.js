@@ -27,6 +27,7 @@ gitServer.get('/', (req, res) => {
 gitServer.get('/starred/orgs', (req, res) => {
   const orgId = 0;
   api.reposByStars((data) => {
+    console.log('starred/orgs', data);
     const newOrg = JSON.parse(data);
     console.log('NEW ORG', newOrg);
     const orgArray = newOrg.items;
