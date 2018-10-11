@@ -14,6 +14,13 @@ gitServer.listen(port, () => {
   console.log(`listening on ${port}`);
 });
 
+/** * Test ** */
+
+// Test for deployment
+gitServer.get('/', (req, res) => {
+  res.send('Test - HOME PAGE!!!');
+});
+
 /** * Organization ** */
 
 // Get Organizations by top Repos by Stargazers
@@ -43,27 +50,6 @@ gitServer.get('/starred/orgs', (req, res) => {
   });
 });
 
-// // Get an Organization's comments
-// gitServer.put('/starred/orgName/repoName/comments', (req, res) => {
-//   const orgName = 'freeCodeCamp';
-//   const repoName = 'freeCodeCamp';
-//   api.listOrgComments(orgName, repoName, (data) => {
-//     const newData = JSON.parse(data);
-//     const orgData = newData.map((org) => {
-//       if (org.author_association === 'MEMBER') {
-//         console.log(org.body);
-//         db.Organization.update({
-//           orgCommentsBody: org.body,
-//           orgUpdatedAt: org.updatedAt,
-//         }, {
-//           where: { orgName : orgName }
-//         }).then((newOrg) => {
-//           res.send(newOrg);
-//         });
-//       }
-//     });
-//   });
-// });
 
 // Incoming Request for list of Organizations
 gitServer.get('/api/gateway/github/orglist', (req, res) => {
@@ -86,14 +72,30 @@ gitServer.get('/api/gateway/github/orgdata', (req, res) => {
   });
 });
 
-// Test for deployment
-gitServer.get('/', (req, res) => {
-  res.send('Test - HOME PAGE!!!');
+// // Get an Organization's comments
+gitServer.put('/starred/orgName/repoName/comments', (req, res) => {
+  const orgName = 'freeCodeCamp';
+  const repoName = 'freeCodeCamp';
+  api.listOrgComments(orgName, repoName, (data) => {
+    const newData = JSON.parse(data);
+    const orgData = newData.map((org) => {
+      if (org.author_association === 'MEMBER') {
+        console.log(org.body);
+        db.Organization.update({
+          orgCommentsBody: org.body,
+          orgUpdatedAt: org.updatedAt,
+        }, {
+          where: { orgName : orgName }
+        }).then((newOrg) => {
+          res.send(newOrg);
+        });
+      }
+    });
+  });
 });
 
 
 /** * User's ** */
-
 
 // User's repos from GitHub
 gitServer.get('/user/repos', (req, res) => {
@@ -115,72 +117,48 @@ gitServer.get('/user/repos', (req, res) => {
   });
 });
 
-
 // User's repos and User's review comments
-// gitServer.get('/user/repo/review', (req, res) => {
-//   const repoIdNum = 0;
-//   const username = req.body.username || 'fabpot';
-//   db.User.findOne({
-//     where: { userName: username },
-//   }).then((data) => {
-//     data.repoNameList.forEach((repo) => {
-//       api.listCommentsInARepo(data.userName, repo, (unit) => {  
-//         const newUnit = JSON.parse(unit);  
-//         const data = newUnit.map((repos) => {
-//           if (repos.author_association !== 'CONTRIBUTOR') {
-//             // return db.Repo.create({
-//             //   repoId: repoIdNum,
-//             //   // repoName: repo,
-//             //   commentsBody: repos.body,
-//             //   updatedAt: repos.updatedAt,
-//             // }).then((repoData) => {
-//             //   res.send(repoData);
-//             //   console.log('Repo review comments have been saved!', repoData);
-//             // }).catch((error) => {
-//             //   console.log('Error - Repo Review was NOT saved', error);
-//             // });
-//           }
-//         });
-//       });
-//     });
-//   });
-// });
+gitServer.get('/user/repo/review', (req, res) => {
+  const repoIdNum = 0;
+  const username = req.body.username || 'fabpot';
+  db.User.findOne({
+    where: { userName: username },
+  }).then((data) => {
+    data.repoNameList.forEach((repo) => {
+      api.listCommentsInARepo(data.userName, repo, (unit) => {  
+        const newUnit = JSON.parse(unit);  
+        const data = newUnit.map((repos) => {
+          if (repos.author_association !== 'CONTRIBUTOR') {
+            // return db.Repo.create({
+            //   repoId: repoIdNum,
+            //   // repoName: repo,
+            //   commentsBody: repos.body,
+            //   updatedAt: repos.updatedAt,
+            // }).then((repoData) => {
+            //   res.send(repoData);
+            //   console.log('Repo review comments have been saved!', repoData);
+            // }).catch((error) => {
+            //   console.log('Error - Repo Review was NOT saved', error);
+            // });
+          }
+        });
+      });
+    });
+  });
+});
 
 // Request for User's repos
 
 
 // Incoming request for User's Repos comments
-// gitServer.get('/api/gateway/github/userdata', (req, res) => {
-//   db.User.findAll({}).then((data) => {
-//     res.send(data);
-//     console.log(data);
-//   }).catch((err) => {
-//     console.log(err);
-//   });
-// });
-
-// // Github Organization by top Repos by Stargazers
-// // gitServer.get('/starred/orgs', () => {
-// //   const orgId = 0;
-// //   api.reposByStars((unit) => {
-// //     const newOrg = JSON.parse(unit);
-// //     const orgArray = newOrg.items;
-
-// //     const orgData = orgArray.map((org) => {
-// //       if (org.owner.type === 'Organization') {
-// //         db.Organization.create({
-// //           orgId,
-// //           orgName: org.owner.login,
-// //           orgStargazers: org.stargazers_count,
-// //         }).then((orgs) => {
-// //           console.log('Success - Organizations have been saved', orgs);
-// //         }).catch((error) => {
-// //           console.log('Error', error);
-// //         });
-// //       }
-// //     });
-// //   });
-// // });
+gitServer.get('/api/gateway/github/userdata', (req, res) => {
+  db.User.findAll({}).then((data) => {
+    res.send(data);
+    console.log(data);
+  }).catch((err) => {
+    console.log(err);
+  });
+});
 
 
 // Github top Repos by stargazers
