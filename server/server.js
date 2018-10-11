@@ -11,6 +11,7 @@ const port = process.env.PORT || 4200;
 gitServer.use(bodyParser.json());
 
 gitServer.listen(port, () => {
+  const port = server.address().port;
   console.log(`listening on ${port}`);
 });
 
@@ -27,11 +28,12 @@ gitServer.get('/', (req, res) => {
 gitServer.get('/starred/orgs', (req, res) => {
   const orgId = 0;
   api.reposByStars((data) => {
-    console.log(data);
     const newOrg = JSON.parse(data);
+    console.log('NEW ORG', newOrg);
     const orgArray = newOrg.items;
     const orgData = orgArray.map((org) => {
       if (org.owner.type === 'Organization') {
+        console.log('line 36', org.name);
         db.Organization.create({
           orgId,
           orgName: org.owner.login,
