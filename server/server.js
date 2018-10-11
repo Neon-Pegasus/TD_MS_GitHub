@@ -11,7 +11,6 @@ const port = process.env.PORT || 4200;
 gitServer.use(bodyParser.json());
 
 gitServer.listen(port, () => {
-  const port = server.address().port;
   console.log(`listening on ${port}`);
 });
 
