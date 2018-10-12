@@ -74,8 +74,8 @@ gitServer.get('/api/gateway/github/orgdata', (req, res) => {
 
 // // Get an Organization's comments
 gitServer.get('/starred/orgName/repoName/comments', (req, res) => {
-  const orgName = 'freeCodeCamp';
-  const repoName = 'freeCodeCamp';
+  const orgName = req.params.orgName || 'bitcoin';
+  const repoName = req.params.repoName || 'Bitcoin Core integration/staging tree';
   api.listOrgComments(orgName, repoName, (data) => {
     const inputData = JSON.parse(data);
     const newData = inputData.map((data) => {
