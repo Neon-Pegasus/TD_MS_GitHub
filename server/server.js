@@ -165,9 +165,6 @@ gitServer.get('/user/repo/review', (req, res) => {
 });
 
 
-// Request for User's repos
-
-
 // Incoming request for User's Repos comments
 gitServer.get('/api/gateway/github/userdata', (req, res) => {
   db.User.findAll({}).then((data) => {
@@ -178,35 +175,47 @@ gitServer.get('/api/gateway/github/userdata', (req, res) => {
   });
 });
 
+// Request for User's Repo data and comments
+gitServer.get('/api/gateway/github/user/repodata', (req, res) => {
+  db.Repo.findAll({}).then((data) => {
+    res.send(data);
+    console.log(data);
+  }).catch((err) => {
+    console.log(err);
+  });
+});
+
+
+/** * TOP RATED REPOs ** */
 
 // Github top Repos by stargazers
 gitServer.get('/starred/repos', () => {
-  const topId = 0;
   api.reposByStars((res) => {
     const newRes = JSON.parse(res);
     const newRepo = newRes.items;
     const repoData = newRepo.map((repo) => {
       db.TopRepo.create({
-        topId,
         topRepoName: repo.name,
         topRepoStargazers: repo.stargazers_count,
-        updatedAt: repo.updatedAt,
       });
       return repo.url;
-    });
-    repoData.forEach((url) => {
+    })
+    })
+   
+    repoData.forEach((url, repoName) => {
+      
       api.listComments(url, (unit) => {
         const data = JSON.parse(unit);
-        const newData = data.map((repo) => {
-          if (repo.author_association !== 'CONTRIBUTOR') {
+        const newData = data.map((item) => {
+          if (item.author_association === 'OWNER') {
             db.TopRepo.update({
-              commentsBody: repo.body,
+              commentsBody: item.body,
             }, {
               where: {
-                topId,
+                newName,
               },
             }).then((resData) => {
-              console.log('Success - Top Repo comments have been saved', resData);
+              console.log('Success - Top Repo comments have been saved');
             }).catch((error) => {
               console.log('Error', error);
             });
@@ -215,4 +224,4 @@ gitServer.get('/starred/repos', () => {
       });
     });
   });
-});
+// });
