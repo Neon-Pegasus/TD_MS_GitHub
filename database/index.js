@@ -2,7 +2,14 @@ require('dotenv').config();
 const Sequelize = require('sequelize');
 
 
-const githubDb = new Sequelize(`${process.env.DB_URL}`);
+const githubDb = new Sequelize(`${process.env.DB_URL}`, {
+  omitNull: true,
+  pool: {
+    max: 10,
+    min: 2,
+    idle: 10000,
+  },
+});
 
 
 githubDb
@@ -27,10 +34,10 @@ const Repo = githubDb.define('Repo', {
     autoIncrement: true,
     allowNull: false,
   },
-  repoName: { type: Sequelize.STRING },
-  commentsBody: { type: Sequelize.ARRAY(Sequelize.TEXT) },
-  repoStargazers: { type: Sequelize.INTEGER },
-  updatedAt: { type: Sequelize.DATE },
+  repoName: { type: Sequelize.STRING, unique: { args: true, message: 'username must be unique', fields: [Sequelize.fn('lower', Sequelize.col('repoName'))] } },
+  commentsBody: { type: Sequelize.ARRAY(Sequelize.STRING), defaultValue: [] },
+  userName: { type: Sequelize.STRING },
+  // repoUpdatedAt: { type: Sequelize.DATE(10) },
 });
 
 const TopRepo = githubDb.define('TopRepo', {
@@ -43,7 +50,7 @@ const TopRepo = githubDb.define('TopRepo', {
   topRepoName: { type: Sequelize.STRING },
   topCommentsBody: { type: Sequelize.ARRAY(Sequelize.TEXT) },
   topRepoStargazers: { type: Sequelize.INTEGER },
-  updatedAt: { type: Sequelize.DATE },
+  // topUpdatedAt: { type: Sequelize.DATE },
 });
 
 const Organization = githubDb.define('Organizations', {
@@ -52,6 +59,7 @@ const Organization = githubDb.define('Organizations', {
     primaryKey: true,
     autoIncrement: true,
     allowNull: false,
+    unique: true,
   },
   orgName: { type: Sequelize.STRING, unique: { args: true, message: 'orgName must be unique', fields: [Sequelize.fn('lower', Sequelize.col('orgName'))] } },
   orgDescription: { type: Sequelize.STRING },
@@ -59,7 +67,7 @@ const Organization = githubDb.define('Organizations', {
   orgStargazers: { type: Sequelize.INTEGER },
   orgRepo: { type: Sequelize.STRING },
   orgCommentsBody: { type: Sequelize.ARRAY(Sequelize.TEXT) },
-  orgUpdatedAt: { type: Sequelize.DATE },
+  // orgUpdatedAt: { type: Sequelize.DATE },
 });
 
 
@@ -83,6 +91,7 @@ User.hasMany(Repo);
 Repo.belongsTo(User);
 Organization.hasMany(TopRepo);
 TopRepo.belongsTo(Organization);
+
 
 module.exports.User = User;
 module.exports.Repo = Repo;
