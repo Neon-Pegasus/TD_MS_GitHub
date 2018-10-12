@@ -73,31 +73,23 @@ gitServer.get('/api/gateway/github/orgdata', (req, res) => {
 });
 
 // // Get an Organization's comments
-// gitServer.get('/starred/orgName/repoName/comments', (req, res) => {
-//   const orgName = 'freeCodeCamp';
-//   const repoName = 'freeCodeCamp';
-//   api.listOrgComments(orgName, repoName, (data) => {
-//     const inputData = JSON.parse(data);
-//     const commentData = inputData.map((org) => {
-//       if (org.author_association === 'MEMBER') {
-//         return org.body;
-//       }
-//     });
-//     const dateData = inputData.map((org) => {
-//       if (org.author_association === 'MEMBER') {
-//         return org.updatedAt;
-//       }
-//     });
-//     db.Organization.update({
-//       orgCommentsBody: commentData,
-//       orgUpdatedAt: dateData,
-//     }, {
-//       where: { orgName },
-//     }).then(() => {
-//       console.log('Updated Successfully');
-//     });
-//   });
-// });
+gitServer.get('/starred/orgName/repoName/comments', (req, res) => {
+  const orgName = 'freeCodeCamp';
+  const repoName = 'freeCodeCamp';
+  api.listOrgComments(orgName, repoName, (data) => {
+    const inputData = JSON.parse(data);
+    const newData = inputData.map((data) => {
+      return data.body;
+    });
+    db.Organization.update({
+      orgCommentsBody: newData,
+    }, {
+      where: { orgName },
+    }).then(() => {
+      console.log('Updated Successfully');
+    });
+  });
+});
 
 
 /** * User's ** */
