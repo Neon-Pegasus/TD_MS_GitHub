@@ -73,44 +73,32 @@ gitServer.get('/api/gateway/github/orgdata', (req, res) => {
 });
 
 // // Get an Organization's comments
-// gitServer.get('/starred/orgName/repoName/comments', (req, res) => {
-//   const orgName = 'freeCodeCamp';
-//   const repoName = 'freeCodeCamp';
-//   api.listOrgComments(orgName, repoName, (data) => {
-//     const inputData = JSON.parse(data);
-//     const commentData = inputData.map((org) => {
-//       if (org.author_association === 'MEMBER') {
-//         return org.body;
-//       }
-//     });
-//     const dateData = inputData.map((org) => {
-//       if (org.author_association === 'MEMBER') {
-//         return org.updatedAt;
-//       }
-//     });
-//     db.Organization.update({
-//       orgCommentsBody: commentData,
-//       orgUpdatedAt: dateData,
-//     }, {
-//       where: { orgName },
-//     }).then(() => {
-//       console.log('Updated Successfully');
-//     });
-//   });
-// });
+gitServer.get('/starred/orgName/repoName/comments', (req, res) => {
+  const orgName = req.params.orgName || 'bitcoin';
+  const repoName = req.params.repoName || 'Bitcoin Core integration/staging tree';
+  api.listOrgComments(orgName, repoName, (data) => {
+    const inputData = JSON.parse(data);
+    const newData = inputData.map(item => item.body);
+    db.Organization.update({
+      orgCommentsBody: newData,
+    }, {
+      where: { orgName },
+    }).then(() => {
+      console.log('Updated Successfully');
+    });
+  });
+});
 
 
 /** * User's ** */
 
 // User's repos from GitHub
 gitServer.get('/user/repos', (req, res) => {
-  const username = req.body.username || 'bebraw';
-  const userId = 0;
+  const username = req.body.username || 'andrew';
   api.getReposByUser(username, (unit) => {
     const newData = JSON.parse(unit);
     const userRepos = newData.map(repo => JSON.stringify((repo.name)));
     db.User.create({
-      userId,
       userName: username,
       repoNameList: userRepos,
     }).then((user) => {
@@ -135,27 +123,24 @@ gitServer.get('/api/gateway/github/userrepo', (req, res) => {
 
 // User's repos and User's review comments
 gitServer.get('/user/repo/review', (req, res) => {
-  const userName = 'bebraw';
-  // const array = [];
+  const userName = 'andrew';
   db.User.find({ where: { userName } }).then((data) => {
     let dataList = data.repoNameList;
-    dataList = dataList.map((item) => {
-      return item.replace(/[\"]/gim,'');
-    });
+    dataList = dataList.map(item => item.replace(/[\"]/gim, ''));
     dataList.forEach((repo) => {
       api.listCommentsInARepo(userName, repo, (unit) => {
         const newUnit = JSON.parse(unit);
-        newUnit.map((repos) => {
+        const repoData = newUnit.map((repos) => {
           if (repos.author_association === 'OWNER') {
-            if (!Array.isArray(repos.body))  {
-              let array = [repos.body];
+            if (!Array.isArray(repos.body)) {
+              const array = [repos.body];
               db.Repo.create({
                 repoName: repo,
                 commentsBody: array,
-                userName: userName,
+                userName,
                 updatedAt: repos.updatedAt,
               }).then((repoData) => {
-                // res.send(repoData);
+                res.send(repoData);
                 console.log('Repo review comments have been saved!', repoData);
               }).catch((error) => {
                 console.log('Error - Repo Review was NOT saved', error);
@@ -165,13 +150,13 @@ gitServer.get('/user/repo/review', (req, res) => {
                 repoName: repo,
                 commentsBody: repos.body,
                 updatedAt: repos.updatedAt,
-              }).then((repoData) => {
-                // res.send(repoData);
-                console.log('Repo review comments have been saved!', repoData);
+              }).then((reposData) => {
+                res.send(reposData);
+                console.log('Repo review comments have been saved!', reposData);
               }).catch((error) => {
                 console.log('Error - Repo Review was NOT saved', error);
               });
-            } 
+            }
           }
         });
       });
