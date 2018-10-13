@@ -1,1 +1,9 @@
 language: node_js
+
+deploy:
+  provider: heroku
+  app: TD_MS_Github
+
+  cache:
+    directories:
+    - "node_modules"
