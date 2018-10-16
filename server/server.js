@@ -1,6 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const moment = require('moment');
+const request = require('request-promise');
 const db = require('../database/index.js');
 const api = require('../helper/helpers.js');
 require('dotenv').config();
@@ -22,75 +22,45 @@ gitServer.get('/', (req, res) => {
   res.send('Test - HOME PAGE!!!');
 });
 
-/** * Organization ** */
 
 // Get Organizations by top Repos by Stargazers
 gitServer.get('/starred/orgs', (req, res) => {
-  const orgId = 0;
-  api.reposByStars((data) => {
-    const newOrg = JSON.parse(data);
-    const orgArray = newOrg.items;
-    const orgData = orgArray.map((org) => {
-      if (org.owner.type === 'Organization') {
-        db.Organization.create({
-          orgId,
-          orgName: org.owner.login,
-          orgDescription: org.description,
-          orgAvatar: org.owner.avatar_url,
-          orgStargazers: org.stargazers_count,
-          orgRepo: org.name,
-        }).then((orgs) => {
-          res.json(orgs);
-          console.log('Success - Organizations have been saved');
-        }).catch((error) => {
-          console.log('Error', error);
-        });
+  let array = [];
+  let arr = [];
+  let newArray = [];
+  api.reposByStars().then((data) => {
+    const orgArray = data.items;
+    for (let i = 0; i < orgArray.length; i += 1) {
+      if (orgArray[i]) {
+        const org = orgArray[i];
+        if (org.owner.type === 'Organization') {
+          const orgObj = {
+            orgName: org.owner.login,
+            orgDescription: org.description,
+            orgAvatar: org.owner.avatar_url,
+            orgStargazers: org.stargazers_count,
+            orgRepo: org.name,
+            orgCommentsBody:'', 
+          };
+          array.push(orgObj);
+        } 
       }
-    });
-  });
+    }
+    newArray = array.slice(0, 100);
+  })
+    .then(() => { newArray.forEach((data) => { arr.push(api.listOrgComments(data.orgName, data.orgRepo)); });})
+    .then(() => Promise.all(arr))
+    .then(result => result[0].filter(body => body.author_association === 'MEMBER').map(member => member.body))
+    .then((result) => { 
+      for (let j = 0; j < newArray.length; j+= 1) {
+        newArray[j].orgCommentsBody = result;
+      }
+      return db.Organization.bulkCreate(newArray);
+    })
+    .then((answer) => { res.send(answer) })
+    .catch((error) => { console.log(error); res.send(error.message); });
 });
 
-
-// Incoming Request for list of Organizations
-gitServer.get('/api/gateway/github/orglist', (req, res) => {
-  db.Organization.findAll({ attributes: ['orgName'] }).then((data) => {
-    res.send(data);
-    console.log('success', data);
-  }).catch((err) => {
-    console.log(err);
-  });
-});
-
-
-// Incoming Request for Organization Data
-gitServer.get('/api/gateway/github/orgdata', (req, res) => {
-  db.Organization.findAll({}).then((data) => {
-    res.send(data);
-    console.log(data);
-  }).catch((err) => {
-    console.log(err);
-  });
-});
-
-// // Get an Organization's comments
-gitServer.get('/starred/orgName/repoName/comments', (req, res) => {
-  const orgName = req.params.orgName || 'bitcoin';
-  const repoName = req.params.repoName || 'Bitcoin Core integration/staging tree';
-  api.listOrgComments(orgName, repoName, (data) => {
-    const inputData = JSON.parse(data);
-    const newData = inputData.map(item => item.body);
-    db.Organization.update({
-      orgCommentsBody: newData,
-    }, {
-      where: { orgName },
-    }).then(() => {
-      console.log('Updated Successfully');
-    });
-  });
-});
-
-
-/** * User's ** */
 
 // User's repos from GitHub
 gitServer.get('/user/repos', (req, res) => {
@@ -110,16 +80,6 @@ gitServer.get('/user/repos', (req, res) => {
   });
 });
 
-// Get list of Users Repos
-gitServer.get('/api/gateway/github/userrepo', (req, res) => {
-  const userName = req.params.userName || 'fabpot';
-  db.User.find({ where: { userName } }).then((data) => {
-    res.send(data);
-    console.log('success', data);
-  }).catch((err) => {
-    console.log(err);
-  });
-});
 
 // User's repos and User's review comments
 gitServer.get('/user/repo/review', (req, res) => {
@@ -165,6 +125,52 @@ gitServer.get('/user/repo/review', (req, res) => {
 });
 
 
+/** **** API GATEWAY ********* */
+// Incoming Request for list of Organizations
+gitServer.get('/api/gateway/github/orglist', (req, res) => {
+  db.Organization.findAll({ attributes: ['orgName'] }).then((data) => {
+    res.send(data);
+    console.log('success', data);
+  }).catch((err) => {
+    console.log(err);
+  });
+});
+
+
+// Incoming Request for Organization Data
+gitServer.get('/api/gateway/github/org/data', (req, res) => {
+  const org = req.params.orgsName || 'tensorflow';
+  db.Organization.findOne({ where: { orgName: org } }).then((data) => {
+    res.send(data);
+    console.log(data);
+  }).catch((err) => {
+    console.log(err);
+  });
+});
+
+
+gitServer.get('/api/gateway/github/orgdata', (req, res) => {
+  db.Organization.findOne({}).then((data) => {
+    res.send(data);
+    console.log(data);
+  }).catch((err) => {
+    console.log(err);
+  });
+});
+
+
+// Get list of Users Repos
+gitServer.get('/api/gateway/github/user/repo', (req, res) => {
+  const userName = req.params.userName || 'andrew';
+  db.User.find({ where: { userName } }).then((data) => {
+    res.send(data);
+    console.log('success', data);
+  }).catch((err) => {
+    console.log(err);
+  });
+});
+
+
 // Incoming request for User's Repos comments
 gitServer.get('/api/gateway/github/userdata', (req, res) => {
   db.User.findAll({}).then((data) => {
@@ -175,8 +181,8 @@ gitServer.get('/api/gateway/github/userdata', (req, res) => {
   });
 });
 
-// Request for User's Repo data and comments
-gitServer.get('/api/gateway/github/user/repodata', (req, res) => {
+// Request for All users repos data and comments
+gitServer.get('/api/gateway/github/repodata', (req, res) => {
   db.Repo.findAll({}).then((data) => {
     res.send(data);
     console.log(data);
@@ -185,43 +191,14 @@ gitServer.get('/api/gateway/github/user/repodata', (req, res) => {
   });
 });
 
-
-/** * TOP RATED REPOs ** */
-
-// Github top Repos by stargazers
-gitServer.get('/starred/repos', () => {
-  api.reposByStars((res) => {
-    const newRes = JSON.parse(res);
-    const newRepo = newRes.items;
-    const repoData = newRepo.map((repo) => {
-      db.TopRepo.create({
-        topRepoName: repo.name,
-        topRepoStargazers: repo.stargazers_count,
-      });
-      return repo.url;
-    })
-    })
-   
-    repoData.forEach((url, repoName) => {
-      
-      api.listComments(url, (unit) => {
-        const data = JSON.parse(unit);
-        const newData = data.map((item) => {
-          if (item.author_association === 'OWNER') {
-            db.TopRepo.update({
-              commentsBody: item.body,
-            }, {
-              where: {
-                newName,
-              },
-            }).then((resData) => {
-              console.log('Success - Top Repo comments have been saved');
-            }).catch((error) => {
-              console.log('Error', error);
-            });
-          }
-        });
-      });
-    });
+// Request for specific user's repo data and comments
+gitServer.get('/api/gateway/github/user/repo/data', (req, res) => {
+  const user = req.params.user || 'andrew';
+  db.Repo.findOne({ where: { userName: user } }).then((data) => {
+    res.send(data);
+    console.log(data);
+  }).catch((err) => {
+    console.log(err);
   });
-// });
+});
+
