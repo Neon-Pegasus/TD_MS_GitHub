@@ -86,28 +86,9 @@ const getUserData = (userName) => {
     .catch(error => error);
 };
 
-const updateUserData = () => {
-  const arr = [];
-  db.User.findAll({})
-    .then((results) => {
-      results.forEach((data) => { arr.push(getReposByUser(data.userName)) });
-    })
-    .then(() => Promise.all(arr))
-    .then((results) => {
-      const userRepos = results.map(repo => (repo.name));
-      return db.User.update(
-        { repoNameList: userRepos },
-        { where: { userName } })
-    })
-    .then((data) => {
-      data.forEach((item) => { queryDatabase(item.userName)); 
-    })
-    .catch(error => error);
-};
 
 const queryDatabase = (userName) => {
   const array = [];
-  const arr = [];
   db.User.findOne({ where: { userName } })
     .then((data) => {
       const dataList = data.dataValues.repoNameList;
@@ -129,6 +110,26 @@ const queryDatabase = (userName) => {
         .then(() => { console.log('Database is updated'); });
     })
     .catch((error) => { console.log('Database in NOT updated', error); });
+};
+
+const updateUserData = () => {
+  const arr = [];
+  db.User.findAll({})
+    .then((results) => {
+      results.forEach((data) => { arr.push(getReposByUser(data.userName)); });
+    })
+    .then(() => Promise.all(arr))
+    .then((results) => {
+      const userRepos = results.map(repo => (repo.name));
+      return db.User.update(
+        { repoNameList: userRepos },
+        { where: { userName } },
+      );
+    })
+    .then((data) => {
+      data.forEach((item) => { queryDatabase(item.userName); });
+    })
+    .catch(error => error);
 };
 
 

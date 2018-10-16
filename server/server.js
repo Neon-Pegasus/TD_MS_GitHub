@@ -14,18 +14,11 @@ gitServer.listen(port, () => {
   console.log(`listening on ${port}`);
 });
 
-/** * Test ** */
-
-// Test for deployment
-gitServer.get('/', (req, res) => {
-  res.send('Test - HOME PAGE!!!');
-});
-
 
 // Get Organizations by top Repos by Stargazers
 const getOrgs = () => {
-  let array = [];
-  let arr = [];
+  const array = [];
+  const arr = [];
   let newArray = [];
   api.reposByStars().then((data) => {
     const orgArray = data.items;
@@ -39,19 +32,23 @@ const getOrgs = () => {
             orgAvatar: org.owner.avatar_url,
             orgStargazers: org.stargazers_count,
             orgRepo: org.name,
-            orgCommentsBody:'', 
+            orgCommentsBody: '',
           };
           array.push(orgObj);
-        } 
+        }
       }
     }
     newArray = array.slice(0, 100);
   })
-    .then(() => { newArray.forEach((data) => { arr.push(api.listOrgComments(data.orgName, data.orgRepo)); });})
+    .then(() => {
+      newArray.forEach((data) => {
+        arr.push(api.listOrgComments(data.orgName, data.orgRepo));
+      });
+    })
     .then(() => Promise.all(arr))
     .then(result => result[0].filter(body => body.author_association === 'MEMBER').map(member => member.body))
-    .then((result) => { 
-      for (let j = 0; j < newArray.length; j+= 1) {
+    .then((result) => {
+      for (let j = 0; j < newArray.length; j += 1) {
         newArray[j].orgCommentsBody = result;
       }
       return db.Organization.bulkCreate(newArray);
@@ -126,11 +123,11 @@ gitServer.get('/api/gateway/github/user', (req, res) => {
 // Request for specific user's repo data and comments
 gitServer.get('/api/gateway/github/user/repo/data', (req, res) => {
   const userName = req.params.userName || 'andrew';
-  getUserRepo(userName);
+  getUserRepos(userName);
+});
 
 // Request for All users repos data and comments
 gitServer.get('/api/gateway/github/repo/data', (req, res) => {
-  
   db.Repo.findAll({}).then((data) => {
     res.send(data);
     console.log(data);
@@ -145,3 +142,11 @@ const lateNightUpdate = () => {
 };
 
 setInterval(lateNightUpdate, 86400000);
+
+/** * Test ** */
+
+// Test for deployment
+gitServer.get('/', (req, res) => {
+  getOrgs();
+  res.send('Test - HOME PAGE!!!');
+});
