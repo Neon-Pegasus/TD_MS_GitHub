@@ -11,7 +11,7 @@ const getReposByUser = (username) => {
     json: true,
     headers: {
       'User-Agent': 'request',
-      Authorization: 'bearer 544029e3605427a7a2b1ea6dbdb8788bf4dde889',
+      Authorization: `bearer ${process.env.GITHUB_TOKEN}`,
     },
   };
   return request(options);
@@ -26,7 +26,7 @@ const listCommentsInARepo = (username, repo) => {
     json: true,
     headers: {
       'User-Agent': 'request',
-      Authorization: 'bearer 544029e3605427a7a2b1ea6dbdb8788bf4dde889',
+      Authorization: `bearer ${process.env.GITHUB_TOKEN}`,
     },
   };
   return request(options);
@@ -40,7 +40,7 @@ const reposByStars = () => {
     json: true,
     headers: {
       'User-Agent': 'request',
-      Authorization: 'bearer 544029e3605427a7a2b1ea6dbdb8788bf4dde889',
+      Authorization: `bearer ${process.env.GITHUB_TOKEN}`,
     },
   };
   return request(options);
@@ -55,7 +55,7 @@ const listComments = (url) => {
     json: true,
     headers: {
       'User-Agent': 'request',
-      Authorization: 'bearer 544029e3605427a7a2b1ea6dbdb8788bf4dde889',
+      Authorization: `bearer ${process.env.GITHUB_TOKEN}`,
     },
   };
   return request(options);
@@ -68,7 +68,7 @@ const listOrgComments = (orgName, repoName) => {
     json: true,
     headers: {
       'User-Agent': 'request',
-      Authorization: 'bearer 544029e3605427a7a2b1ea6dbdb8788bf4dde889',
+      Authorization: `bearer ${process.env.GITHUB_TOKEN}`,
     },
   };
   return request(options);
@@ -118,17 +118,17 @@ const updateUserData = () => {
     .then((results) => {
       results.forEach((data) => { arr.push(getReposByUser(data.userName)); });
     })
-    .then(() => Promise.all(arr))
-    .then((results) => {
-      const userRepos = results.map(repo => (repo.name));
-      return db.User.update(
-        { repoNameList: userRepos },
-        { where: { userName } },
-      );
-    })
-    .then((data) => {
-      data.forEach((item) => { queryDatabase(item.userName); });
-    })
+    // .then(() => Promise.all(arr))
+    // .then((results) => {
+    //   const userRepos = results.map(repo => (repo.name));
+    //   return db.User.update(
+    //     { repoNameList: userRepos },
+    //     { where: { userName } },
+    //   );
+    // })
+    // .then((data) => {
+    //   data.forEach((item) => { queryDatabase(item.userName); });
+    // })
     .catch(error => error);
 };
 
