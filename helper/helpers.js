@@ -61,6 +61,7 @@ const listComments = (url) => {
   return request(options);
 };
 
+
 const listOrgComments = (orgName, repoName) => {
   const options = {
     method: 'GET',
@@ -71,72 +72,10 @@ const listOrgComments = (orgName, repoName) => {
       Authorization: `bearer ${process.env.GITHUB_TOKEN}`,
     },
   };
-  return request(options);
-};
-
-const getUserData = (userName) => {
-  return getReposByUser(userName)
-    .then((results) => {
-      const userRepos = results.map(repo => (repo.name));
-      return db.User.create({
-        userName,
-        repoNameList: userRepos,
-      });
-    })
-    .catch(error => error);
+  request(options)
 };
 
 
-const queryDatabase = (userName) => {
-  const array = [];
-  db.User.findOne({ where: { userName } })
-    .then((data) => {
-      const dataList = data.dataValues.repoNameList;
-      dataList.forEach((repo) => {
-        array.push(listCommentsInARepo(userName, repo));
-        db.Repo.create({
-          userName,
-          repoName: repo,
-        });
-      });
-    })
-    .then(() => Promise.all(array))
-    .then(data => data[0].filter(body => body.author_association === 'OWNER').map(comment => comment.body))
-    .then((result) => {
-      db.Repo.update(
-        { commentsBody: result },
-        { where: { userName } },
-      )
-        .then(() => { console.log('Database is updated'); });
-    })
-    .catch((error) => { console.log('Database in NOT updated', error); });
-};
-
-const updateUserData = () => {
-  const arr = [];
-  db.User.findAll({})
-    .then((results) => {
-      results.forEach((data) => { arr.push(getReposByUser(data.userName)); });
-    })
-    // .then(() => Promise.all(arr))
-    // .then((results) => {
-    //   const userRepos = results.map(repo => (repo.name));
-    //   return db.User.update(
-    //     { repoNameList: userRepos },
-    //     { where: { userName } },
-    //   );
-    // })
-    // .then((data) => {
-    //   data.forEach((item) => { queryDatabase(item.userName); });
-    // })
-    .catch(error => error);
-};
-
-
-// module.exports.getOrgs = getOrgs;
-module.exports.updateUserData = updateUserData;
-module.exports.queryDatabase = queryDatabase;
-module.exports.getUserData = getUserData;
 module.exports.getReposByUser = getReposByUser;
 module.exports.listCommentsInARepo = listCommentsInARepo;
 module.exports.reposByStars = reposByStars;
