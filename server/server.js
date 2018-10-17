@@ -20,6 +20,7 @@ const getOrgs = () => {
   const array = [];
   const arr = [];
   let newArray = [];
+  const comments = [];
   api.reposByStars().then((data) => {
     const orgArray = data.items;
     for (let i = 0; i < orgArray.length; i += 1) {
@@ -46,15 +47,75 @@ const getOrgs = () => {
       });
     })
     .then(() => Promise.all(arr))
-    .then(result => result[0].filter(body => body.author_association === 'MEMBER').map(member => member.body))
     .then((result) => {
-      for (let j = 0; j < newArray.length; j += 1) {
-        newArray[j].orgCommentsBody = result;
-      }
-      return db.Organization.bulkCreate(newArray);
+      
+      result[0].forEach((item) => { 
+        if (item.author_association === 'MEMBER') {
+          const comment = item.body;
+          console.log('COMMENT--------------->', item.user);
+          newArray[0].orgCommentsBody = comment;
+          return newArray;
+        }
+      });
     })
-    .then((answer) => { console.log(answer); })
+    .then(() => {
+      db.Organization.bulkCreate(newArray);
+    })
+    .then((result) => { console.log(result); console.log('HERE--->', newArray); })
     .catch((error) => { console.log(error); console.log(error.message); });
+};
+
+const queryDatabase = (userName) => {
+  db.User.find({ where: { userName } }).then((data) => {
+    let dataList = data.repoNameList;
+    dataList = dataList.map(item => item.replace(/[\"]/gim, ''));
+    dataList.forEach((repo) => {
+      api.listCommentsInARepo(userName, repo)
+        .then((unit) => {
+          const repoData = unit.map((repos) => {
+            if (repos.author_association === 'OWNER') {
+              if (!Array.isArray(repos.body)) {
+                const array = [repos.body];
+                db.Repo.create({
+                  repoName: repo,
+                  commentsBody: array,
+                  userName,
+                  updatedAt: repos.updatedAt,
+                }).then((reposData) => {
+                  console.log('Repo review comments have been saved!', reposData);
+                }).catch((error) => {
+                  console.log('Error - Repo Review was NOT saved', error);
+                });
+              } else {
+                db.Repo.create({
+                  repoName: repo,
+                  commentsBody: repos.body,
+                })
+                  .then((result) => {
+                    console.log('Repo review comments have been saved!', result);
+                  })
+                  .catch((error) => {
+                    console.log('Error - Repo Review was NOT saved', error);
+                  });
+              }
+            }
+          });
+        });
+    });
+  });
+};
+
+const getUserData = (userName) => {
+  api.getReposByUser(userName)
+    .then((results) => {
+      const userRepos = results.map(repo => (repo.name));
+      return db.User.create({
+        userName,
+        repoNameList: userRepos,
+      });
+    })
+    .then(() => { queryDatabase(userName); })
+    .catch(error => error);
 };
 
 
@@ -66,11 +127,21 @@ const getUserRepos = (userName) => {
         return api.getUserData(userName);
       }
       if (data.dataValues.userName) {
-        return api.queryDatabase(userName);
+        return queryDatabase(userName);
       }
     })
-    .then((data) => { console.log(data); res.send(data); })
-    .catch((error) => { res.send(error.message); });
+    .then((data) => { res.send(data); console.log(data); })
+    .catch((error) => { console.log(error.message); });
+};
+
+const getRepoData = (userName) => {
+  db.Repo.find({ where: { userName } })
+    .then((data) => {
+      res.send(data);
+    })
+    .catch((error) => {
+      res.send(error.message);
+    });
 };
 
 
@@ -123,7 +194,13 @@ gitServer.get('/api/gateway/github/user', (req, res) => {
 // Request for specific user's repo data and comments
 gitServer.get('/api/gateway/github/user/repo/data', (req, res) => {
   const userName = req.params.userName || 'andrew';
-  getUserRepos(userName);
+  getUserRepos(userName)
+    .then((result) => {
+      res.send(result);
+    })
+    .catch((error) => {
+      res.send(error.message);
+    });
 });
 
 // Request for All users repos data and comments
@@ -147,6 +224,7 @@ setInterval(lateNightUpdate, 86400000);
 
 // Test for deployment
 gitServer.get('/', (req, res) => {
+  // api.updateUserData();
   getOrgs();
   res.send('Test - HOME PAGE!!!');
 });
