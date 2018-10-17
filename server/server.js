@@ -47,17 +47,10 @@ const getOrgs = () => {
       });
     })
     .then(() => Promise.all(arr))
-    .then((result) => {
-      
-      result[0].forEach((item) => { 
-        if (item.author_association === 'MEMBER') {
-          const comment = item.body;
-          console.log('COMMENT--------------->', item.user);
-          newArray[0].orgCommentsBody = comment;
-          return newArray;
-        }
-      });
-    })
+    // .then(result => result.filter(item.author_association === 'MEMBER').map(body => body.body);
+    //   });
+    // })
+    .then((data) => { console.log(data); })
     .then(() => {
       db.Organization.bulkCreate(newArray);
     })
@@ -65,45 +58,106 @@ const getOrgs = () => {
     .catch((error) => { console.log(error); console.log(error.message); });
 };
 
-const queryDatabase = (userName) => {
-  db.User.find({ where: { userName } }).then((data) => {
-    let dataList = data.repoNameList;
-    dataList = dataList.map(item => item.replace(/[\"]/gim, ''));
-    dataList.forEach((repo) => {
-      api.listCommentsInARepo(userName, repo)
-        .then((unit) => {
-          const repoData = unit.map((repos) => {
-            if (repos.author_association === 'OWNER') {
-              if (!Array.isArray(repos.body)) {
-                const array = [repos.body];
-                db.Repo.create({
-                  repoName: repo,
-                  commentsBody: array,
-                  userName,
-                  updatedAt: repos.updatedAt,
-                }).then((reposData) => {
-                  console.log('Repo review comments have been saved!', reposData);
-                }).catch((error) => {
-                  console.log('Error - Repo Review was NOT saved', error);
-                });
-              } else {
-                db.Repo.create({
-                  repoName: repo,
-                  commentsBody: repos.body,
-                })
-                  .then((result) => {
-                    console.log('Repo review comments have been saved!', result);
-                  })
-                  .catch((error) => {
-                    console.log('Error - Repo Review was NOT saved', error);
-                  });
-              }
-            }
-          });
-        });
-    });
-  });
-};
+// const queryDatabase = (userName) => {
+//   db.User.find({ where: { userName } })
+//     .then((data) => {
+//       let dataList = data.repoNameList;
+//       dataList = dataList.map(item => item.replace(/[\"]/gim, ''));
+//       return dataList;
+//       })
+//       .then((dataList) => {
+//         dataList.forEach((repo) => {
+//           api.listCommentsInARepo(userName, repo)
+//         })
+//           .then((unit) => {
+//             const repoData = unit.map((repos) => {
+//               if (repos.author_association === 'OWNER') {
+//                 if (!Array.isArray(repos.body)) {
+//                   const array = [repos.body];
+//                   db.Repo.create({
+//                     repoName: repo,
+//                     commentsBody: array,
+//                     userName,
+//                     updatedAt: repos.updatedAt,
+//                   }).then((reposData) => {
+//                     console.log('Repo review comments have been saved!', reposData);
+//                   }).catch((error) => {
+//                     console.log('Error - Repo Review was NOT saved', error);
+//                   });
+//                 } else {
+//                   db.Repo.create({
+//                     repoName: repo,
+//                     commentsBody: repos.body,
+//                   })
+//                     .then((result) => {
+//                       console.log('Repo review comments have been saved!', result);
+//                     })
+//                     .catch((error) => {
+//                       console.log('Error - Repo Review was NOT saved', error);
+//                     });
+//                 }
+//               }
+//             });
+//           });
+//       });
+//     });
+// };
+
+// const queryDatabase = (userName) => {
+//   const promises = [];
+//   return db.User.find({ where: { userName } })
+//     .then((data) => {
+//       console.log('LINE 117', data);
+//       let dataList = data.repoNameList;
+//       // ['reponame1', 'reponame1']
+//       // dataList = dataList.map(item => item.replace(/[\"]/gim, ''));
+//       return dataList;
+//     })
+//     .then((dataList) => {
+//       dataList.forEach((repo) => { 
+//         promises.push(api.listCommentsInARepo(userName, repo));
+//       });
+//       return Promise.all(promises);
+//     })
+//     .then((data) => {
+//       return data.filter((repo) => {
+//         return repo.length;
+//       });
+//     })
+// .then((data) => {
+//   return data.map((repos) => {
+//     if (repos.author_association === 'OWNER') {
+//       if (!Array.isArray(repos.body)) {
+//         const array = [repos.body];
+//         db.Repo.create({
+//           repoName: repo,
+//           commentsBody: array,
+//           userName,
+//           updatedAt: repos.updatedAt,
+//         }).then((reposData) => {
+//           console.log('Repo review comments have been saved!', reposData);
+//           return reposData;
+//         }).catch((error) => {
+//           console.log('Error - Repo Review was NOT saved', error);
+//           return error;
+//         });
+//       } else {
+//         db.Repo.create({
+//           repoName: repo,
+//           commentsBody: repos.body,
+//         })
+//           .then((result) => {
+//             console.log('Repo review comments have been saved!', result);
+//             return result;
+//           })
+//           .catch((error) => {
+//             console.log('Error - Repo Review was NOT saved', error);
+//             return error;
+//           });
+//       }
+//     }
+// s
+// };
 
 const getUserData = (userName) => {
   api.getReposByUser(userName)
@@ -194,23 +248,29 @@ gitServer.get('/api/gateway/github/user', (req, res) => {
 // Request for specific user's repo data and comments
 gitServer.get('/api/gateway/github/user/repo/data', (req, res) => {
   const userName = req.params.userName || 'andrew';
-  getUserRepos(userName)
-    .then((result) => {
-      res.send(result);
+  db.User.find({ where: { userName } })
+    .then((data) => {
+      if (!data) {
+        return api.getUserData(userName);
+      }
+      if (data.dataValues.userName) {
+        return queryDatabase(userName);
+      }
     })
-    .catch((error) => {
-      res.send(error.message);
-    });
+    .then((data) => { res.send(data); console.log(data); })
+    .catch((error) => { res.send(error.message); });
 });
 
 // Request for All users repos data and comments
 gitServer.get('/api/gateway/github/repo/data', (req, res) => {
-  db.Repo.findAll({}).then((data) => {
-    res.send(data);
-    console.log(data);
-  }).catch((err) => {
-    console.log(err);
-  });
+  const userName = req.params.userName || 'andrew';
+  db.Repo.findAll({ where: { userName } })
+    .then((data) => {
+      res.send(data);
+      console.log(data);
+    }).catch((err) => {
+      res.send(err.message);
+    });
 });
 
 const lateNightUpdate = () => {
