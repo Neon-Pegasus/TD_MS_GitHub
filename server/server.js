@@ -14,6 +14,24 @@ gitServer.listen(port, () => {
   console.log(`listening on ${port}`);
 });
 
+const getOrgData = () => {
+  const requestArr = [];
+  db.Organization.findAll({})
+    .then((results) => { console.log(results);
+      results.forEach((name) => { console.log(name);
+        requestArr.push(api.getOrgInfo(name.orgName));
+      });
+      return Promise.all(requestArr);
+    })
+    .then((results) => {
+      results.map((orgData) => {
+        db.Organization.update(
+          { orgBio: orgData.bio },
+          { where: { orgName: orgData.login } },
+        ).save();
+      });
+    });
+};
 
 const getOrgRepoData = () => {
   let topReposList;
@@ -80,26 +98,25 @@ const getUserData = (userName) => {
       });
     })
     .then((results) => {
-      const userRepoArray = results.map((repos) => {
-        repos.filter(repo => repo.author_association === 'OWNER')
-        if (!Array.isArray(repos.body)) {
-          const array = [repos.body];
-          db.Repo.create({
-            userName,
-            repoName: (repos.url).split('https://api.github.com/repos/')[1].split('/')[1],
-            commentsBody: array,
-          });
-        } else {
-          db.Repo.create({
-            userName,
-            repoName: (repos.url).split('https://api.github.com/repos/')[1].split('/')[1],
-            commentsBody: repos.body,
-          });
+      results.map((repos) => {
+        if (repos.author_association === 'OWNER') {
+          if (!Array.isArray(repos.body)) {
+            let array = [repos.body];
+            db.Repo.create({
+              username,
+              repoName: repo,
+              commentsBody: array,
+            });
+          } else {
+            db.Repo.create({
+              username,
+              repoName: repo,
+              commentsBody: repos.body,
+            });
+          } 
         }
       });
-      return userRepoArray;
-    })
-    .catch((error) => { console.log('Error', error)});
+    });
 };
 
 
@@ -133,14 +150,11 @@ gitServer.get('/api/gateway/github/orglist', (req, res) => {
 
 // Request for specific user's repo data and comments
 gitServer.get('/api/gateway/github/user/repo/data', (req, res) => {
-  const userName = req.params.userName || 'ornicar';
+  const userName = req.params.userName || 'nelsonic';
   db.Repo.findOne({ where: { userName } })
     .then((result) => {
       if (!result || result === undefined) {
         return getUserData(userName);
-      }
-      if (result.dataValues.userName) {
-        return db.Repo.findAll({ where: { userName } });
       }
     })
     .then((result) => { res.send(result); console.log(result); })
@@ -161,7 +175,7 @@ gitServer.get('/api/gateway/github/repo/data', (req, res) => {
 
 const lateNightUpdate = () => {
   getOrgRepoData();
-  api.updateUserData();
+  getOrgData();
 };
 
 setInterval(lateNightUpdate, 86400000);
