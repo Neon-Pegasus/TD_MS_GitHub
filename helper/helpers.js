@@ -1,5 +1,4 @@
 const request = require('request-promise');
-const db = require('../database/index.js');
 require('dotenv').config();
 
 
@@ -32,6 +31,7 @@ const listCommentsInARepo = (username, repo) => {
   return request(options);
 };
 
+
 // Searches repositories by Stargazers over 10,000 and language: javascript
 const reposByStars = () => {
   const options = {
@@ -48,10 +48,10 @@ const reposByStars = () => {
 
 
 // List the Top Repos pull request review comments
-const listComments = (url) => {
+const getRepoComments = (url) => {
   const options = {
     method: 'GET',
-    url: `${url}/issues/comments?page=1&per_page=100`,
+    url: `${url}/issues/comments`,
     json: true,
     headers: {
       'User-Agent': 'request',
@@ -62,25 +62,40 @@ const listComments = (url) => {
 };
 
 
-const listOrgComments = (orgName, repoName) => {
+const getOrgRepos = (url) => {
   const options = {
     method: 'GET',
-    url: `https://api.github.com/repos/${orgName}/${repoName}/issues/comments?page=1&per_page=100`,
+    url: `${url}`,
     json: true,
     headers: {
       'User-Agent': 'request',
       Authorization: `bearer ${process.env.GITHUB_TOKEN}`,
     },
   };
-  request(options)
+  return request(options);
 };
 
 
+const getOrgInfo = (orgName) => {
+  const options = {
+    method: 'GET',
+    url: `https://api.github.com/users/${orgName}`,
+    json: true,
+    headers: {
+      'User-Agent': 'request',
+      Authorization: `bearer ${process.env.GITHUB_TOKEN}`,
+    },
+  };
+  return request(options);
+};
+
+
+module.exports.getOrgInfo = getOrgInfo;
+module.exports.getOrgRepos = getOrgRepos;
 module.exports.getReposByUser = getReposByUser;
 module.exports.listCommentsInARepo = listCommentsInARepo;
 module.exports.reposByStars = reposByStars;
-module.exports.listComments = listComments;
-module.exports.listOrgComments = listOrgComments;
+module.exports.getRepoComments = getRepoComments;
 
 
 /**
