@@ -107,8 +107,8 @@ const getUserData = (userName) => {
 
 
 // Incoming Request for list of Organizations
-gitServer.get('/api/gateway/github/orglist', (req, res) => {
-  db.Organization.findAll({ attributes: ['orgName'] })
+gitServer.get('/api/gateway/github/orgdata', (req, res) => {
+  db.Organization.findAll({})
     .then((result) => {
       res.send(result);
       console.log('success', result);
@@ -119,20 +119,9 @@ gitServer.get('/api/gateway/github/orglist', (req, res) => {
 
 
 // Incoming Request for Organization Data
-gitServer.get('/api/gateway/github/org/data', (req, res) => {
+gitServer.get('/api/gateway/github/orglist', (req, res) => {
   const org = req.params.orgsName || 'facebook';
   db.Organization.findAll({ where: { orgName: org } })
-    .then((result) => {
-      res.send(result);
-      console.log(result);
-    }).catch((err) => {
-      console.log(err);
-    });
-});
-
-
-gitServer.get('/api/gateway/github/orgdata', (req, res) => {
-  db.Organization.findAll({})
     .then((result) => {
       res.send(result);
       console.log(result);
