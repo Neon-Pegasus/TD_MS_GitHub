@@ -3,7 +3,6 @@ const Sequelize = require('sequelize');
 
 
 const githubDb = new Sequelize(`${process.env.DB_URL}`, {
-  omitNull: true,
   pool: {
     max: 100,
     min: 2,
@@ -24,7 +23,6 @@ githubDb
 const User = githubDb.define('User', {
   userId: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
   userName: { type: Sequelize.STRING, alloNull: false, unique: { args: true, message: 'username must be unique', fields: [Sequelize.fn('lower', Sequelize.col('userName'))] } },
-  repoNameList: { type: Sequelize.ARRAY(Sequelize.TEXT) },
 });
 
 const Repo = githubDb.define('Repo', {
@@ -34,10 +32,9 @@ const Repo = githubDb.define('Repo', {
     autoIncrement: true,
     allowNull: false,
   },
-  repoName: { type: Sequelize.STRING },
-  commentsBody: { type: Sequelize.ARRAY(Sequelize.STRING), defaultValue: [] },
   userName: { type: Sequelize.STRING },
-  // repoUpdatedAt: { type: Sequelize.DATE(10) },
+  repoName: { type: Sequelize.STRING, allowNull: false },
+  commentBody: { type: Sequelize.ARRAY(Sequelize.TEXT), defaultValue: [] },
 });
 
 const Organization = githubDb.define('Organization', {
@@ -49,12 +46,14 @@ const Organization = githubDb.define('Organization', {
     unique: true,
   },
   orgName: { type: Sequelize.STRING, allowNull: false },
-  orgDescription: { type: Sequelize.TEXT('long') },
   orgAvatar: { type: Sequelize.TEXT('long') },
-  orgStargazers: { type: Sequelize.INTEGER },
-  orgRepo: { type: Sequelize.STRING },
-  orgCommentsBody: { type: Sequelize.ARRAY(Sequelize.TEXT('long')) },
-  // orgUpdatedAt: { type: Sequelize.DATE },
+  orgBio: { type: Sequelize.TEXT('long') },
+  orgStars: { type: Sequelize.INTEGER },
+  orgUrl: { type: Sequelize.ARRAY(Sequelize.STRING), defaultValue: [] },
+  orgTopRepoUrl: { type: Sequelize.TEXT('long') },
+  orgTopRepoName: { type: Sequelize.TEXT('long') },
+  orgTopRepoStars: { type: Sequelize.INTEGER },
+  orgTopRepoComments: { type: Sequelize.ARRAY(Sequelize.TEXT('long')) },
 });
 
 
@@ -72,8 +71,8 @@ githubDb.sync()
 
 
 // Relations
-User.hasMany(Repo);
-Repo.belongsTo(User);
+User.hasMany(Repo, { foreignKey: 'userId' });
+Repo.belongsTo(User, { foreignKey: 'userId' });
 
 
 module.exports.User = User;
