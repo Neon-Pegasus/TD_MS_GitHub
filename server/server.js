@@ -130,20 +130,9 @@ gitServer.get('/api/gateway/github/org/data', (req, res) => {
     });
 });
 
-gitServer.get('/api/gateway/github/org/data', (req, res) => {
-  const org = req.params.orgsName || 'facebook';
-  db.Organization.findOne({ where: { orgName: org } })
-    .then((result) => {
-      res.send(result);
-      console.log(result);
-    }).catch((err) => {
-      console.log(err);
-    });
-});
-
 
 gitServer.get('/api/gateway/github/orgdata', (req, res) => {
-  db.Organization.findOne({})
+  db.Organization.findAll({})
     .then((result) => {
       res.send(result);
       console.log(result);
