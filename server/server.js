@@ -86,13 +86,13 @@ const getUserData = (userName) => {
           const array = [repos.body];
           db.Repo.create({
             userName,
-            repoName: (repo.url).split('https://api.github.com/repos/')[1].split('/')[1],
+            repoName: (repos.url).split('https://api.github.com/repos/')[1].split('/')[1],
             commentsBody: array,
           });
         } else {
           db.Repo.create({
             userName,
-            repoName: (repo.url).split('https://api.github.com/repos/')[1].split('/')[1],
+            repoName: (repos.url).split('https://api.github.com/repos/')[1].split('/')[1],
             commentsBody: repos.body,
           });
         }
@@ -155,7 +155,7 @@ gitServer.get('/api/gateway/github/orgdata', (req, res) => {
 
 // Request for specific user's repo data and comments
 gitServer.get('/api/gateway/github/user/repo/data', (req, res) => {
-  const userName = req.params.userName || 'fabpot';
+  const userName = req.params.userName || 'ornicar';
   db.Repo.findOne({ where: { userName } })
     .then((result) => {
       if (!result || result === undefined) {
@@ -192,15 +192,5 @@ setInterval(lateNightUpdate, 86400000);
 
 // Test for deployment
 gitServer.get('/', (req, res) => {
-  // api.updateUserData();
-  // getOrgRepoData()
-  //   .then((result) => {
-  //     res.send(result);
-  //   });
-  // getOrgs();
-  // getTopOrgs()
-  // .then((result) => {
-  //   res.send(result);
-  // });
   res.send('Test - HOME PAGE!!!');
 });
